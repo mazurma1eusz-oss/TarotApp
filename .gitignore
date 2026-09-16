@@ -1,0 +1,22 @@
+# Zawiera klucz API i ścieżkę do lokalnego SDK - nigdy nie może trafić do repozytorium.
+local.properties
+
+# Gradle
+.gradle/
+build/
+app/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystore podpisywania wersji release - nigdy nie commitować.
+*.jks
+*.keystore
+
+# Logi i pliki tymczasowe
+*.log

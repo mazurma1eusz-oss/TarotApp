@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme: dark, mystyczny motyw. Compose przejmuje kontrolę nad
+         całą treścią (patrz ui/theme/Theme.kt), ten styl odpowiada tylko za splash
+         screen / okno startowe i pasek systemowy przed pierwszym renderem Compose. -->
+    <style name="Theme.TarotApp" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/mystic_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.TarotApp.Main</item>
+    </style>
+
+    <style name="Theme.TarotApp.Main" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/mystic_background</item>
+        <item name="android:statusBarColor">@color/mystic_background</item>
+        <item name="android:navigationBarColor">@color/mystic_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

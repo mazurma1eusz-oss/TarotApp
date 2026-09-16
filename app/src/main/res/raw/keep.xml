@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Karty tarota są wczytywane dynamicznie przez CardImageResolver (Resources.getIdentifier
+    z nazwą pliku z cards.json), więc żaden kod nie odwołuje się do nich statycznie przez
+    R.drawable.*. Bez tego pliku shrinkResources (włączony w buildTypes.release) uznałby
+    te 78 grafik za nieużywane i usunął je z APK - w release wszystkie karty pokazywałyby
+    placeholder. tools:keep zabezpiecza je przed shrinkerem.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/*" />
