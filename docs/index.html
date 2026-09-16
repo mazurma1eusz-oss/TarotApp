@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarot Mistyczny — aplikacja na Androida</title>
+<meta name="description" content="Tarot Mistyczny — Karta Dnia, rozkłady tarota i odczyty AI. Strona aplikacji, polityka prywatności i regulamin.">
+<style>
+  :root {
+    --bg: #090718;
+    --surface: #14102b;
+    --surface-2: #1c1640;
+    --primary: #8B5CF6;
+    --gold: #D4AF37;
+    --text: #EDE9FE;
+    --text-muted: #B7AFD9;
+    --border: #2c2456;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 50% -10%, #1c1640 0%, #090718 55%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  header {
+    text-align: center;
+    padding: 72px 20px 40px;
+  }
+  .stars {
+    letter-spacing: 10px;
+    color: var(--gold);
+    font-size: 14px;
+    margin-bottom: 18px;
+    opacity: 0.85;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0 0 12px;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+  }
+  .tagline {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    color: var(--gold);
+    font-size: 1.15rem;
+    margin-top: 0;
+  }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .feature {
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+  }
+  .feature strong { color: var(--text); display: block; margin-bottom: 4px; }
+  .feature span { color: var(--text-muted); font-size: 0.92rem; }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  a.button {
+    display: inline-block;
+    color: var(--bg);
+    background: var(--gold);
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  a.link {
+    color: var(--gold);
+    text-decoration: none;
+  }
+  a.link:hover, a.button:hover { opacity: 0.88; }
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 20px;
+  }
+  footer a { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="stars">✦ ✦ ✦</div>
+  <h1>Tarot Mistyczny</h1>
+  <p class="tagline">Karta Dnia, rozkłady tarota i spersonalizowane odczyty AI — w spokojnej, refleksyjnej formie.</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>O aplikacji</h2>
+    <p>Tarot Mistyczny to aplikacja na Androida do codziennej refleksji z kartami tarota: Karta Dnia, rozkłady 1/3/5 kart w trybie „Zapytaj Kart” ze wsparciem AI, pełna encyklopedia 78 kart oraz osobisty dziennik odczytów.</p>
+    <div class="features">
+      <div class="feature"><strong>Karta Dnia</strong><span>Codzienne losowanie z krótką interpretacją</span></div>
+      <div class="feature"><strong>Zapytaj Kart</strong><span>Odczyty AI dopasowane do Twojego pytania</span></div>
+      <div class="feature"><strong>Encyklopedia</strong><span>Wszystkie 78 kart Wielkich i Małych Arkanów</span></div>
+      <div class="feature"><strong>Dziennik</strong><span>Historia odczytów i własne notatki</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Dokumenty prawne</h2>
+    <p>Poniżej znajdziesz Politykę Prywatności oraz Regulamin aplikacji.</p>
+    <div class="links">
+      <a class="button" href="privacy-policy.html">Polityka Prywatności</a>
+      <a class="button" href="terms.html">Regulamin</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Kontakt</h2>
+    <p>Masz pytanie, uwagę albo zgłaszasz problem? Napisz do nas:</p>
+    <p><a class="link" href="mailto:mazurma1eusz@gmail.com">mazurma1eusz@gmail.com</a></p>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 Tarot Mistyczny · Mateusz Mazur · <a href="privacy-policy.html">Polityka Prywatności</a> · <a href="terms.html">Regulamin</a>
+</footer>
+
+</body>
+</html>
