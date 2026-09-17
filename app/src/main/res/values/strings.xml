@@ -25,7 +25,7 @@
     <string name="share">Udostępnij</string>
     <string name="share_show_question">Pokaż moje pytanie na grafice</string>
     <string name="share_caption_template">Dziś gwiazdy przynoszą mi %1$s. A co Tobie karty powiedzą? Tarot Mistyczny — pobierz tutaj: %2$s</string>
-    <string name="play_store_url" translatable="false">https://play.google.com/store/apps/details?id=com.mazur.tarot</string>
+    <string name="play_store_url" translatable="false">https://play.google.com/store/apps/details?id=com.tarot.mistiq</string>
     <string name="share_preview_title">Podgląd grafiki</string>
 
     <!-- Zapytaj kart -->
