@@ -169,8 +169,9 @@ class BillingManager(
             .setProductList(listOf(monthlyProduct, weeklyProduct, yearlyProduct, packStartProduct, packStandardProduct))
             .build()
 
-        billingClient.queryProductDetailsAsync(params) { result, productDetailsList ->
+        billingClient.queryProductDetailsAsync(params) { result, queryResult ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                val productDetailsList = queryResult.productDetailsList
                 _monthlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_MONTHLY }
                 _weeklyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_WEEKLY }
                 _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }

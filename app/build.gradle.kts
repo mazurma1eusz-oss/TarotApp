@@ -4,6 +4,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
 
@@ -48,12 +49,12 @@ val hasReleaseSigningConfig: Boolean = releaseStoreFile.isNotBlank() && releaseS
 
 android {
     namespace = "com.mazur.tarot"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.mazur.tarot"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
@@ -107,10 +108,6 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -140,9 +137,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.8.5")
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -151,7 +148,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     // Billing
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:8.3.0")
 
     // AdMob (Rewarded Ads - alternatywa dla PRO przy jednym zapytaniu do AI)
     implementation("com.google.android.gms:play-services-ads:23.6.0")
