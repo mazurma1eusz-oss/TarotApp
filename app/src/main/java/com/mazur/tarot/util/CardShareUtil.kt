@@ -97,15 +97,24 @@ object CardShareUtil {
         )
     }
 
-    /** Zapisuje [bitmap] do cache i otwiera systemowy selektor udostępniania - WYŁĄCZNIE obraz
-     * (image/png). Bez EXTRA_TEXT, bez EXTRA_SUBJECT, bez ClipData z tekstem - tylko strumień
-     * obrazu z odczytanym uprawnieniem, żeby odbiorca (np. Stories) dostał czysty PNG. */
-    fun shareBitmap(context: Context, bitmap: Bitmap, chooserTitle: String, fileName: String = "tarot_share.png") {
+    /** Buduje podpis towarzyszący grafice (styl "wiadomości") - wymienia wylosowane karty i
+     * zaprasza odbiorcę do pobrania aplikacji, z linkiem wprost do Google Play. */
+    fun buildShareCaption(context: Context, cardNames: List<String>): String {
+        val cardsText = cardNames.joinToString(", ")
+        val playStoreUrl = context.getString(R.string.play_store_url)
+        return context.getString(R.string.share_caption_template, cardsText, playStoreUrl)
+    }
+
+    /** Zapisuje [bitmap] do cache i otwiera systemowy selektor udostępniania - obraz (image/png)
+     * plus opcjonalny [shareText] (podpis w stylu wiadomości, patrz [buildShareCaption]) jako
+     * EXTRA_TEXT, żeby aplikacje czatowe pokazały go razem z grafiką. */
+    fun shareBitmap(context: Context, bitmap: Bitmap, chooserTitle: String, fileName: String = "tarot_share.png", shareText: String? = null) {
         val file = saveBitmapToCache(context, bitmap, fileName)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, uri)
+            shareText?.let { putExtra(Intent.EXTRA_TEXT, it) }
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(Intent.createChooser(shareIntent, chooserTitle).apply {

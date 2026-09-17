@@ -14,9 +14,10 @@ captures/
 .externalNativeBuild/
 .cxx/
 
-# Keystore podpisywania wersji release - nigdy nie commitować.
+# Keystore podpisywania wersji release i towarzyszące mu hasła - nigdy nie commitować.
 *.jks
 *.keystore
+keystore/
 
 # Logi i pliki tymczasowe
 *.log

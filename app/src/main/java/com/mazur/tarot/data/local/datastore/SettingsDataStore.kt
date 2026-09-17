@@ -46,6 +46,7 @@ data class AppSettings(
     val favoriteCardIds: Set<Int> = emptySet(),
     val personalizedAdsConsent: Boolean = true,
     val reversedCardsEnabled: Boolean = true,
+    val musicMuted: Boolean = false,
 ) {
     /** Karty pomocnicze (Wsparcie / Na co uważać) są ważne tylko w dniu, w którym padły. */
     private val bonusCardsAreForToday: Boolean
@@ -118,6 +119,7 @@ class SettingsDataStore(private val context: Context) {
         val DAILY_PRO_QUESTIONS_COUNT = intPreferencesKey("daily_pro_questions_count")
         val DAILY_PRO_QUESTIONS_EPOCH_DAY = longPreferencesKey("daily_pro_questions_epoch_day")
         val REVERSED_CARDS_ENABLED = booleanPreferencesKey("reversed_cards_enabled")
+        val MUSIC_MUTED = booleanPreferencesKey("music_muted")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -142,6 +144,7 @@ class SettingsDataStore(private val context: Context) {
             favoriteCardIds = (prefs[Keys.FAVORITE_CARD_IDS] ?: emptySet()).mapNotNull { it.toIntOrNull() }.toSet(),
             personalizedAdsConsent = prefs[Keys.PERSONALIZED_ADS_CONSENT] ?: true,
             reversedCardsEnabled = prefs[Keys.REVERSED_CARDS_ENABLED] ?: true,
+            musicMuted = prefs[Keys.MUSIC_MUTED] ?: false,
         )
     }
 
@@ -231,6 +234,11 @@ class SettingsDataStore(private val context: Context) {
     /** Włącza/wyłącza losowanie kart odwróconych (Karta Dnia i Zapytaj Kart). Domyślnie włączone. */
     suspend fun setReversedCardsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.REVERSED_CARDS_ENABLED] = enabled }
+    }
+
+    /** Wycisza/odcisza muzykę w tle. Domyślnie odciszona (muzyka gra). */
+    suspend fun setMusicMuted(muted: Boolean) {
+        context.dataStore.edit { it[Keys.MUSIC_MUTED] = muted }
     }
 
     /**

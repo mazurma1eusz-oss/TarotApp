@@ -39,9 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,6 +62,7 @@ import com.mazur.tarot.ui.theme.MysticPanel
 import com.mazur.tarot.ui.theme.MysticPurple
 import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.theme.MysticTextSecondary
+import com.mazur.tarot.util.HapticUtil
 import com.mazur.tarot.util.InAppReviewHelper
 
 @Composable
@@ -82,7 +81,6 @@ fun AskCardsScreen(onProRequired: () -> Unit) {
     )
     val uiState by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val haptic = LocalHapticFeedback.current
     var question by rememberSaveable { mutableStateOf("") }
     var selectedSpread by rememberSaveable { mutableStateOf(SpreadOption.ONE) }
     var selectedIntent by rememberSaveable { mutableStateOf<ReadingIntent?>(null) }
@@ -205,7 +203,7 @@ fun AskCardsScreen(onProRequired: () -> Unit) {
                         Spacer(modifier = Modifier.height(24.dp))
                         MysticGradientButton(
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (settings.soundVibrationEnabled) HapticUtil.vibrate(context)
                                 viewModel.requestReading(question, selectedSpread, selectedIntent)
                             },
                             enabled = question.trim().length >= 5,
@@ -233,6 +231,7 @@ fun AskCardsScreen(onProRequired: () -> Unit) {
                         },
                         onFollowUpUnlockRequested = { viewModel.requestFollowUpUnlock() },
                         onSubmitFollowUp = { followUpQuestion -> viewModel.submitFollowUp(followUpQuestion) },
+                        soundVibrationEnabled = settings.soundVibrationEnabled,
                     )
                 }
             }

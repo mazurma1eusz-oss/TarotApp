@@ -47,8 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,6 +65,7 @@ import com.mazur.tarot.ui.theme.MysticPurple
 import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.theme.MysticTextSecondary
 import com.mazur.tarot.util.AiResponseFormatter
+import com.mazur.tarot.util.HapticUtil
 
 /**
  * Osobny widok odczytu: zakryte karty do odsłonięcia stukiem oraz ciągła konwersacja
@@ -82,8 +82,9 @@ fun ReadingScreen(
     onFinish: () -> Unit,
     onFollowUpUnlockRequested: () -> Unit,
     onSubmitFollowUp: (String) -> Unit,
+    soundVibrationEnabled: Boolean,
 ) {
-    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     val showResponseSection = state.allCardsFlipped && state.isAiFinished
 
@@ -141,7 +142,7 @@ fun ReadingScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = {
                                     if (!cardState.isFlipped) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        if (soundVibrationEnabled) HapticUtil.vibrate(context)
                                     }
                                     onFlipCard(index)
                                 },

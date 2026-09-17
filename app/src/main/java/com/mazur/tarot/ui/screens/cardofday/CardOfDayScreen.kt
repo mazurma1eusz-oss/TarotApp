@@ -49,9 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +81,7 @@ import com.mazur.tarot.ui.theme.MysticPanel
 import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.theme.MysticTextSecondary
 import com.mazur.tarot.util.CardShareUtil
+import com.mazur.tarot.util.HapticUtil
 import com.mazur.tarot.util.InAppReviewHelper
 import java.util.concurrent.TimeUnit
 
@@ -100,10 +99,10 @@ fun CardOfDayScreen() {
     )
     val uiState by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val activity = context as? Activity
     var sharePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var sharePreviewText by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.reviewRequestEvent.collect { activity?.let { InAppReviewHelper.requestReview(it) } }
@@ -133,7 +132,7 @@ fun CardOfDayScreen() {
 
             is CardOfDayUiState.ReadyToDraw -> {
                 ReadyToDrawHero(onDraw = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (settings.soundVibrationEnabled) HapticUtil.vibrate(context)
                     viewModel.drawCard()
                 })
             }
@@ -144,7 +143,7 @@ fun CardOfDayScreen() {
                     modifier = Modifier.height(300.dp),
                     onClick = {
                         if (!state.revealed) {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            if (settings.soundVibrationEnabled) HapticUtil.vibrate(context)
                             viewModel.reveal()
                         }
                     },
@@ -194,6 +193,7 @@ fun CardOfDayScreen() {
                                         state.drawnCard.card,
                                         state.drawnCard.isReversed,
                                     )
+                                    sharePreviewText = CardShareUtil.buildShareCaption(context, listOf(cardTitle))
                                 },
                                 modifier = Modifier.padding(top = 16.dp),
                             ) {
@@ -289,7 +289,7 @@ fun CardOfDayScreen() {
         SharePreviewDialog(
             bitmap = bitmap,
             onConfirm = {
-                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Kartę Dnia", "card_of_day_share.png")
+                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Kartę Dnia", "card_of_day_share.png", sharePreviewText)
                 sharePreviewBitmap = null
             },
             onDismiss = { sharePreviewBitmap = null },

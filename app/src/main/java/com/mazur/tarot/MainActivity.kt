@@ -19,4 +19,19 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        (application as TarotApplication).musicManager.onForeground()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (application as TarotApplication).musicManager.onBackground()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (application as TarotApplication).musicManager.release()
+    }
 }

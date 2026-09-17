@@ -68,6 +68,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("pl", "PL")) }
     var includeQuestionOnShare by remember { mutableStateOf(false) }
     var sharePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var sharePreviewText by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
@@ -241,6 +242,8 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
             OutlinedButton(
                 onClick = {
                     sharePreviewBitmap = CardShareUtil.renderReadingBitmap(context, reading, includeQuestionOnShare)
+                    val cardNames = reading.drawnCards.map { it.card.name + if (it.isReversed) " (odwr.)" else "" }
+                    sharePreviewText = CardShareUtil.buildShareCaption(context, cardNames)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -254,7 +257,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
         SharePreviewDialog(
             bitmap = bitmap,
             onConfirm = {
-                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Odczyt", "reading_share.png")
+                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Odczyt", "reading_share.png", sharePreviewText)
                 sharePreviewBitmap = null
             },
             onDismiss = { sharePreviewBitmap = null },

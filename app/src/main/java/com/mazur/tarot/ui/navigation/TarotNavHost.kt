@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -44,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.mazur.tarot.R
+import com.mazur.tarot.data.local.datastore.AppSettings
 import com.mazur.tarot.notifications.NotificationScheduler
 import com.mazur.tarot.ui.components.MysticBackground
 import com.mazur.tarot.ui.screens.ask.AskCardsScreen
@@ -73,15 +77,16 @@ fun TarotNavHost() {
     val context = LocalContext.current
     val app = tarotApp()
     val bootstrapScope = rememberCoroutineScope()
+    val settings by app.settingsDataStore.settingsFlow.collectAsStateWithLifecycle(initialValue = AppSettings())
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) {
             bootstrapScope.launch {
-                val settings = app.settingsDataStore.settingsFlow.first()
+                val bootSettings = app.settingsDataStore.settingsFlow.first()
                 NotificationScheduler.ensureChannel(context)
-                NotificationScheduler.schedule(context, settings.reminderHour, settings.reminderMinute)
+                NotificationScheduler.schedule(context, bootSettings.reminderHour, bootSettings.reminderMinute)
             }
         }
     }
@@ -89,14 +94,14 @@ fun TarotNavHost() {
         // Powiadomienia o Karcie Dnia są domyślnie włączone (8:00) - sprawdzamy dostęp
         // od razu przy starcie i w razie potrzeby prosimy o zgodę, zamiast czekać, aż
         // użytkownik sam włączy przełącznik w Ustawieniach.
-        val settings = app.settingsDataStore.settingsFlow.first()
-        if (settings.reminderEnabled) {
+        val bootSettings = app.settingsDataStore.settingsFlow.first()
+        if (bootSettings.reminderEnabled) {
             val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
             if (hasPermission) {
                 NotificationScheduler.ensureChannel(context)
-                NotificationScheduler.schedule(context, settings.reminderHour, settings.reminderMinute)
+                NotificationScheduler.schedule(context, bootSettings.reminderHour, bootSettings.reminderMinute)
             } else {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -121,6 +126,19 @@ fun TarotNavHost() {
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        IconButton(onClick = {
+                            bootstrapScope.launch {
+                                app.settingsDataStore.setMusicMuted(!settings.musicMuted)
+                            }
+                        }) {
+                            Icon(
+                                if (settings.musicMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                contentDescription = stringResource(
+                                    if (settings.musicMuted) R.string.action_unmute_music else R.string.action_mute_music,
+                                ),
+                                tint = MysticTextSecondary,
+                            )
+                        }
                         IconButton(onClick = {
                             if (currentRoute != Screen.Settings.route) {
                                 navController.navigate(Screen.Settings.route)

@@ -3,6 +3,7 @@ package com.mazur.tarot
 import android.app.Application
 import com.mazur.tarot.ads.RewardedAdManager
 import com.mazur.tarot.ai.AiReadingRepository
+import com.mazur.tarot.audio.MusicManager
 import com.mazur.tarot.billing.BillingManager
 import com.mazur.tarot.data.local.datastore.SettingsDataStore
 import com.mazur.tarot.data.local.db.AppDatabase
@@ -23,6 +24,7 @@ class TarotApplication : Application() {
     val billingManager: BillingManager by lazy { BillingManager(this, settingsDataStore) }
     val aiReadingRepository: AiReadingRepository by lazy { AiReadingRepository() }
     val rewardedAdManager: RewardedAdManager by lazy { RewardedAdManager(this) }
+    val musicManager: MusicManager by lazy { MusicManager(this, settingsDataStore) }
 
     override fun onCreate() {
         super.onCreate()

@@ -24,6 +24,8 @@
     <string name="reversed_suffix">(Odwrócona)</string>
     <string name="share">Udostępnij</string>
     <string name="share_show_question">Pokaż moje pytanie na grafice</string>
+    <string name="share_caption_template">Dziś gwiazdy przynoszą mi %1$s. A co Tobie karty powiedzą? Tarot Mistyczny — pobierz tutaj: %2$s</string>
+    <string name="play_store_url" translatable="false">https://play.google.com/store/apps/details?id=com.mazur.tarot</string>
     <string name="share_preview_title">Podgląd grafiki</string>
 
     <!-- Zapytaj kart -->
@@ -131,6 +133,8 @@
     <string name="notification_bonus_ready_title">Karty dodatkowe gotowe</string>
     <string name="notification_bonus_ready_text">Twoje karty wsparcia i ostrzeżenia są gotowe do odkrycia!</string>
 
+    <string name="action_mute_music">Wycisz muzykę</string>
+    <string name="action_unmute_music">Włącz muzykę</string>
     <string name="content_desc_card_back">Rewers karty tarota</string>
     <string name="content_desc_card_image">Grafika karty tarota</string>
 </resources>

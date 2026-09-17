@@ -37,6 +37,15 @@ val TEST_REWARDED_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
 val prodAdmobAppId: String = (localProperties.getProperty("ADMOB_APP_ID") ?: "").ifBlank { TEST_ADMOB_APP_ID }
 val prodRewardedUnitId: String = (localProperties.getProperty("ADMOB_REWARDED_UNIT_ID") ?: "").ifBlank { TEST_REWARDED_UNIT_ID }
 
+// Podpisywanie wersji release (Play Console) - plik keystore i hasla czytane z
+// local.properties (nigdy nie trafiaja do repozytorium, tak jak TAROT_API_KEY powyzej).
+val releaseStoreFile: String = localProperties.getProperty("RELEASE_STORE_FILE") ?: ""
+val releaseStorePassword: String = localProperties.getProperty("RELEASE_STORE_PASSWORD") ?: ""
+val releaseKeyAlias: String = localProperties.getProperty("RELEASE_KEY_ALIAS") ?: ""
+val releaseKeyPassword: String = localProperties.getProperty("RELEASE_KEY_PASSWORD") ?: ""
+val hasReleaseSigningConfig: Boolean = releaseStoreFile.isNotBlank() && releaseStorePassword.isNotBlank() &&
+    releaseKeyAlias.isNotBlank() && releaseKeyPassword.isNotBlank()
+
 android {
     namespace = "com.mazur.tarot"
     compileSdk = 34
@@ -56,12 +65,26 @@ android {
         buildConfigField("String", "PROD_REWARDED_UNIT_ID", "\"$prodRewardedUnitId\"")
     }
 
+    signingConfigs {
+        if (hasReleaseSigningConfig) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             manifestPlaceholders["admobAppId"] = prodAdmobAppId
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
