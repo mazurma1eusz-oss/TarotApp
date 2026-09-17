@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polityka Prywatności — Tarot Mistyczny</title>
+<meta name="description" content="Polityka prywatności aplikacji Tarot Mistyczny na Androida.">
+<style>
+  :root {
+    --bg: #090718;
+    --surface: #14102b;
+    --gold: #D4AF37;
+    --text: #EDE9FE;
+    --text-muted: #B7AFD9;
+    --border: #2c2456;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.7;
+  }
+  .top {
+    padding: 20px;
+    text-align: center;
+  }
+  .top a { color: var(--gold); text-decoration: none; font-size: 0.9rem; }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 20px 80px;
+  }
+  h1 {
+    color: var(--gold);
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+  }
+  .updated { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 32px; }
+  h2 {
+    color: var(--gold);
+    font-size: 1.15rem;
+    margin-top: 36px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  p, li { color: var(--text); }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--gold); }
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 20px;
+  }
+  footer a { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="top"><a href="index.html">← Tarot Mistyczny</a></div>
+
+<main>
+  <h1>Polityka Prywatności</h1>
+  <p class="updated">Ostatnia aktualizacja: 16 września 2026</p>
+
+  <p>Niniejsza Polityka Prywatności opisuje, jakie dane są przetwarzane w związku z korzystaniem z aplikacji mobilnej <strong>Tarot Mistyczny</strong> na system Android („Aplikacja”).</p>
+
+  <div class="box">
+    <strong>Administrator danych:</strong> Mateusz Mazur<br>
+    <strong>Kontakt:</strong> <a href="mailto:mazurma1eusz@gmail.com">mazurma1eusz@gmail.com</a>
+  </div>
+
+  <h2>1. Ogólna zasada</h2>
+  <p>Aplikacja nie wymaga zakładania konta ani logowania. Większość danych (zapisane odczyty, notatki, ulubione karty, ustawienia, status Dostępu Premium, posiadane kredyty pytań) jest przechowywana <strong>wyłącznie lokalnie na Twoim urządzeniu</strong> i nie jest przesyłana na żaden serwer należący do dewelopera Aplikacji — po prostu dlatego, że taki serwer nie istnieje. Dane te są usuwane automatycznie po odinstalowaniu Aplikacji lub ręcznie przez funkcję „Usuń historię” w Ustawieniach.</p>
+
+  <h2>2. Dane przetwarzane przez funkcję „Zapytaj Kart” (AI)</h2>
+  <p>Gdy korzystasz z funkcji odczytów wspieranych sztuczną inteligencją, treść Twojego pytania oraz nazwy wylosowanych kart są przesyłane do usługi <strong>Google Gemini API</strong> (dostawca: Google LLC) w celu wygenerowania odpowiedzi. Nie przesyłamy przy tym Twojego imienia, adresu e-mail ani żadnego identyfikatora konta — bo Aplikacja go po prostu nie posiada. Przetwarzanie tych zapytań przez Google podlega <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">polityce prywatności Google</a>.</p>
+
+  <h2>3. Reklamy (Google AdMob)</h2>
+  <p>Aplikacja wyświetla reklamy nagradzane (rewarded ads) za pośrednictwem Google AdMob jako darmową alternatywę dla subskrypcji Premium. AdMob może wykorzystywać identyfikator reklamowy urządzenia oraz inne dane techniczne do wyświetlania reklam, a za Twoją zgodą — także do ich personalizacji. Zgodę na spersonalizowane reklamy możesz w każdej chwili zmienić w Aplikacji: Ustawienia → Zarządzaj zgodami. Szczegóły: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">jak Google wykorzystuje dane z aplikacji korzystających z jego usług</a>.</p>
+
+  <h2>4. Zakupy (Google Play Billing)</h2>
+  <p>Subskrypcje Premium oraz jednorazowe pakiety pytań są obsługiwane wyłącznie przez Google Play Billing. Aplikacja nie ma dostępu do danych Twojej karty płatniczej ani innych danych rozliczeniowych — otrzymuje jedynie informację o statusie i tokenie zakupu, niezbędną do odblokowania funkcji Premium.</p>
+
+  <h2>5. Powiadomienia</h2>
+  <p>Jeśli włączysz codzienne przypomnienie o Karcie Dnia, Aplikacja zaplanuje lokalne powiadomienie o wybranej przez Ciebie godzinie. Ta funkcja działa całkowicie na urządzeniu i nie wiąże się z przesyłaniem żadnych danych.</p>
+
+  <h2>6. Uprawnienia wykorzystywane przez Aplikację</h2>
+  <ul>
+    <li><strong>Internet / stan sieci</strong> — komunikacja z Gemini API, AdMob i Google Play Billing.</li>
+    <li><strong>Wibracje</strong> — subtelna informacja zwrotna przy odsłanianiu kart.</li>
+    <li><strong>Powiadomienia</strong> — codzienne przypomnienie o Karcie Dnia (jeśli włączone).</li>
+    <li><strong>Dokładny alarm / uruchomienie po restarcie</strong> — żeby przypomnienie przyszło punktualnie, również po ponownym uruchomieniu telefonu.</li>
+  </ul>
+
+  <h2>7. Odbiorcy danych</h2>
+  <p>Jedynymi podmiotami, którym mogą być przekazywane dane w związku z korzystaniem z Aplikacji, są usługi Google: Gemini API, AdMob, Google Play Billing oraz Google Play In-App Review (funkcja proszenia o ocenę aplikacji w Sklepie Play). Nie sprzedajemy ani nie udostępniamy danych żadnym innym podmiotom.</p>
+
+  <h2>8. Okres przechowywania</h2>
+  <p>Dane lokalne przechowujemy tak długo, jak długo korzystasz z Aplikacji — do jej odinstalowania lub ręcznego usunięcia historii. Treść zapytań przesyłanych do Gemini API nie jest przechowywana przez nas po otrzymaniu odpowiedzi.</p>
+
+  <h2>9. Twoje prawa</h2>
+  <p>Masz prawo do dostępu do swoich danych, ich sprostowania, usunięcia oraz sprzeciwu wobec przetwarzania. Ponieważ dane osobowe generowane przez Aplikację znajdują się lokalnie na Twoim urządzeniu, możesz z nich skorzystać bezpośrednio w Aplikacji (np. „Usuń historię” w Ustawieniach) lub kontaktując się z nami pod adresem <a href="mailto:mazurma1eusz@gmail.com">mazurma1eusz@gmail.com</a>.</p>
+
+  <h2>10. Dzieci</h2>
+  <p>Aplikacja nie jest kierowana do dzieci poniżej 16. roku życia i nie zbieramy świadomie danych osobowych dzieci w tym wieku.</p>
+
+  <h2>11. Zmiany Polityki Prywatności</h2>
+  <p>Możemy okresowo aktualizować niniejszą Politykę Prywatności. O istotnych zmianach poinformujemy poprzez aktualizację daty na górze tej strony.</p>
+
+  <h2>12. Kontakt</h2>
+  <p>Pytania dotyczące niniejszej Polityki Prywatności prosimy kierować na adres: <a href="mailto:mazurma1eusz@gmail.com">mazurma1eusz@gmail.com</a>.</p>
+</main>
+
+<footer>
+  © 2026 Tarot Mistyczny · <a href="index.html">Strona główna</a> · <a href="terms.html">Regulamin</a>
+</footer>
+
+</body>
+</html>
