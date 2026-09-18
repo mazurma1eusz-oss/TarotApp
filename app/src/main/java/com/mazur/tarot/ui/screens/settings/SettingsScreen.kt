@@ -369,7 +369,7 @@ fun SettingsScreen() {
         Text(text = stringResource(R.string.settings_about_section), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.app_name) + " · wersja 1.0.0",
+            text = stringResource(R.string.app_name) + " · wersja " + com.mazur.tarot.BuildConfig.VERSION_NAME,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

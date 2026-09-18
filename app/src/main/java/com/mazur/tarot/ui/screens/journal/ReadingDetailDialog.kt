@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -78,7 +79,8 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
                 .background(MysticBackground, RoundedCornerShape(20.dp))
                 .border(1.dp, MysticOutline, RoundedCornerShape(20.dp))
                 .padding(20.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding(),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
