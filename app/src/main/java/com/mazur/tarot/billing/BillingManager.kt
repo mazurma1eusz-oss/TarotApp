@@ -18,6 +18,7 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.mazur.tarot.data.local.datastore.SettingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -113,8 +114,10 @@ class BillingManager(
     val billingConnected: StateFlow<Boolean> = _billingConnected.asStateFlow()
 
     /** TYMCZASOWA DIAGNOSTYKA (do usunięcia po ustaleniu przyczyny problemów z zakupami na
-     * testach) - dokładny wynik ostatniego zapytania o produkty, pokazywany w Ustawieniach. */
-    private val _billingDiagnostics = MutableStateFlow<String?>(null)
+     * testach) - dokładny wynik ostatniego zapytania o produkty, pokazywany w Ustawieniach.
+     * Domyślna (nie-null) wartość startowa pozwala odróżnić "karta w ogóle się nie renderuje"
+     * (błąd UI) od "połączenie z Play nigdy nie odpowiedziało" (błąd połączenia). */
+    private val _billingDiagnostics = MutableStateFlow<String?>("Łączenie z Google Play... (jeśli ten tekst nie zmieni się w ciągu kilkunastu sekund, zrób zrzut ekranu)")
     val billingDiagnostics: StateFlow<String?> = _billingDiagnostics.asStateFlow()
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
@@ -134,21 +137,36 @@ class BillingManager(
 
     fun startConnection() {
         if (billingClient.isReady) return
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(billingResult: BillingResult) {
-                _billingConnected.value = billingResult.responseCode == BillingClient.BillingResponseCode.OK
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    queryProductDetails()
-                    restorePurchases()
-                } else {
-                    _billingDiagnostics.value = "Połączenie z Play nie wystartowało: kod ${billingResult.responseCode}, ${billingResult.debugMessage}"
+        // TYMCZASOWA DIAGNOSTYKA: jeśli onBillingSetupFinished w ogóle nie zostanie wywołane
+        // (np. usługa Play nie odpowiada), ten watchdog po 12s nadpisze placeholder konkretnym
+        // komunikatem zamiast wiecznie wiszącego "Łączenie...".
+        scope.launch {
+            delay(12_000)
+            if (!_billingConnected.value) {
+                _billingDiagnostics.value = "Brak odpowiedzi od usługi Google Play po 12s - " +
+                    "onBillingSetupFinished nigdy nie zostało wywołane. Prawdopodobnie usługa " +
+                    "Billing nie mogła się połączyć (Sklep Play w tle, brak uprawnień, blokada systemowa)."
+            }
+        }
+        try {
+            billingClient.startConnection(object : BillingClientStateListener {
+                override fun onBillingSetupFinished(billingResult: BillingResult) {
+                    _billingConnected.value = billingResult.responseCode == BillingClient.BillingResponseCode.OK
+                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                        queryProductDetails()
+                        restorePurchases()
+                    } else {
+                        _billingDiagnostics.value = "Połączenie z Play nie wystartowało: kod ${billingResult.responseCode}, ${billingResult.debugMessage}"
+                    }
                 }
-            }
 
-            override fun onBillingServiceDisconnected() {
-                _billingConnected.value = false
-            }
-        })
+                override fun onBillingServiceDisconnected() {
+                    _billingConnected.value = false
+                }
+            })
+        } catch (t: Throwable) {
+            _billingDiagnostics.value = "Wyjątek przy starcie połączenia z Play: ${t.javaClass.simpleName}: ${t.message}"
+        }
     }
 
     private fun queryProductDetails() {
@@ -176,29 +194,35 @@ class BillingManager(
             .setProductList(listOf(monthlyProduct, weeklyProduct, yearlyProduct, packStartProduct, packStandardProduct))
             .build()
 
-        billingClient.queryProductDetailsAsync(params) { result, queryResult ->
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                val productDetailsList = queryResult.productDetailsList
-                _monthlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_MONTHLY }
-                _weeklyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_WEEKLY }
-                _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
-                _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
-                _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
-                _billingDiagnostics.value = if (productDetailsList.isEmpty()) {
-                    "Zapytanie do Play OK, ale zwróciło 0 z 5 produktów (żaden nie znaleziony). " +
-                        "Sprawdź w konsoli: status profilu płatności (zweryfikowany?), cenę w kraju Twojego konta Play, " +
-                        "status Aktywny każdego produktu/planu podstawowego."
-                } else {
-                    val found = productDetailsList.map { it.productId }
-                    val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
-                        .filterNot { it in found }
-                    "Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." +
-                        if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else ""
-                }
+        try {
+            billingClient.queryProductDetailsAsync(params, ::onQueryProductDetailsResult)
+        } catch (t: Throwable) {
+            _billingDiagnostics.value = "Wyjątek przy zapytaniu o produkty: ${t.javaClass.simpleName}: ${t.message}"
+        }
+    }
+
+    private fun onQueryProductDetailsResult(result: BillingResult, queryResult: com.android.billingclient.api.QueryProductDetailsResult) {
+        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+            val productDetailsList = queryResult.productDetailsList
+            _monthlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_MONTHLY }
+            _weeklyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_WEEKLY }
+            _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
+            _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
+            _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
+            _billingDiagnostics.value = if (productDetailsList.isEmpty()) {
+                "Zapytanie do Play OK, ale zwróciło 0 z 5 produktów (żaden nie znaleziony). " +
+                    "Sprawdź w konsoli: status profilu płatności (zweryfikowany?), cenę w kraju Twojego konta Play, " +
+                    "status Aktywny każdego produktu/planu podstawowego."
             } else {
-                _billingDiagnostics.value = "Błąd zapytania o produkty: kod ${result.responseCode}, ${result.debugMessage}"
-                Log.w(TAG, "queryProductDetails failed: ${result.debugMessage}")
+                val found = productDetailsList.map { it.productId }
+                val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
+                    .filterNot { it in found }
+                "Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." +
+                    if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else ""
             }
+        } else {
+            _billingDiagnostics.value = "Błąd zapytania o produkty: kod ${result.responseCode}, ${result.debugMessage}"
+            Log.w(TAG, "queryProductDetails failed: ${result.debugMessage}")
         }
     }
 
@@ -273,20 +297,26 @@ class BillingManager(
 
     /** Uruchamia zakup jednorazowego, konsumowalnego Pakietu Start (5 pytań). */
     fun launchPackStartPurchaseFlow(activity: Activity) {
-        _packStartProductDetails.value?.let { launchInappFlow(activity, it) }
-            ?: Log.w(TAG, "Pack Start details not loaded yet")
+        _packStartProductDetails.value?.let { launchInappFlow(activity, it) } ?: run {
+            Log.w(TAG, "Pack Start details not loaded yet")
+            _billingDiagnostics.value = "Kliknięto Pakiet Start, ale ProductDetails jeszcze nie załadowane."
+        }
     }
 
     /** Uruchamia zakup jednorazowego, konsumowalnego Pakietu Standard (30 pytań). */
     fun launchPackStandardPurchaseFlow(activity: Activity) {
-        _packStandardProductDetails.value?.let { launchInappFlow(activity, it) }
-            ?: Log.w(TAG, "Pack Standard details not loaded yet")
+        _packStandardProductDetails.value?.let { launchInappFlow(activity, it) } ?: run {
+            Log.w(TAG, "Pack Standard details not loaded yet")
+            _billingDiagnostics.value = "Kliknięto Pakiet Standard, ale ProductDetails jeszcze nie załadowane."
+        }
     }
 
     private fun launchSubsFlow(activity: Activity, details: ProductDetails?) {
         val offerToken = details?.subscriptionOfferDetails?.firstOrNull()?.offerToken
         if (details == null || offerToken == null) {
             Log.w(TAG, "Subscription details not loaded yet")
+            _billingDiagnostics.value = "Kliknięto zakup subskrypcji, ale ProductDetails/offerToken " +
+                "jeszcze nie załadowane (details=${details != null}, offerToken=${offerToken != null})."
             return
         }
         val productDetailsParamsList = listOf(
@@ -298,7 +328,11 @@ class BillingManager(
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        billingClient.launchBillingFlow(activity, flowParams)
+        val launchResult = billingClient.launchBillingFlow(activity, flowParams)
+        if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            _billingDiagnostics.value = "launchBillingFlow (subskrypcja) zwróciło błąd: " +
+                "kod ${launchResult.responseCode}, ${launchResult.debugMessage}"
+        }
     }
 
     private fun launchInappFlow(activity: Activity, details: ProductDetails) {
@@ -310,7 +344,11 @@ class BillingManager(
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        billingClient.launchBillingFlow(activity, flowParams)
+        val launchResult = billingClient.launchBillingFlow(activity, flowParams)
+        if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            _billingDiagnostics.value = "launchBillingFlow (produkt) zwróciło błąd: " +
+                "kod ${launchResult.responseCode}, ${launchResult.debugMessage}"
+        }
     }
 
     private fun handlePurchase(purchase: Purchase) {
