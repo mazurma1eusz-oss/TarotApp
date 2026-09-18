@@ -112,6 +112,11 @@ class BillingManager(
     private val _billingConnected = MutableStateFlow(false)
     val billingConnected: StateFlow<Boolean> = _billingConnected.asStateFlow()
 
+    /** TYMCZASOWA DIAGNOSTYKA (do usunięcia po ustaleniu przyczyny problemów z zakupami na
+     * testach) - dokładny wynik ostatniego zapytania o produkty, pokazywany w Ustawieniach. */
+    private val _billingDiagnostics = MutableStateFlow<String?>(null)
+    val billingDiagnostics: StateFlow<String?> = _billingDiagnostics.asStateFlow()
+
     private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             purchases.forEach { handlePurchase(it) }
@@ -135,6 +140,8 @@ class BillingManager(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     queryProductDetails()
                     restorePurchases()
+                } else {
+                    _billingDiagnostics.value = "Połączenie z Play nie wystartowało: kod ${billingResult.responseCode}, ${billingResult.debugMessage}"
                 }
             }
 
@@ -177,7 +184,19 @@ class BillingManager(
                 _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
                 _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
                 _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
+                _billingDiagnostics.value = if (productDetailsList.isEmpty()) {
+                    "Zapytanie do Play OK, ale zwróciło 0 z 5 produktów (żaden nie znaleziony). " +
+                        "Sprawdź w konsoli: status profilu płatności (zweryfikowany?), cenę w kraju Twojego konta Play, " +
+                        "status Aktywny każdego produktu/planu podstawowego."
+                } else {
+                    val found = productDetailsList.map { it.productId }
+                    val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
+                        .filterNot { it in found }
+                    "Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." +
+                        if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else ""
+                }
             } else {
+                _billingDiagnostics.value = "Błąd zapytania o produkty: kod ${result.responseCode}, ${result.debugMessage}"
                 Log.w(TAG, "queryProductDetails failed: ${result.debugMessage}")
             }
         }

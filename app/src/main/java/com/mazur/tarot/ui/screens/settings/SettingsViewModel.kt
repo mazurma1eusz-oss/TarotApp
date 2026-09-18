@@ -24,6 +24,9 @@ class SettingsViewModel(
     val settings: StateFlow<AppSettings> = settingsDataStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
 
+    /** TYMCZASOWA DIAGNOSTYKA - patrz BillingManager.billingDiagnostics. */
+    val billingDiagnostics: StateFlow<String?> = billingManager.billingDiagnostics
+
     val monthlyPriceLabel: String get() = billingManager.monthlyPriceLabel
     val weeklyPriceLabel: String get() = billingManager.weeklyPriceLabel
     val yearlyPriceLabel: String get() = billingManager.yearlyPriceLabel

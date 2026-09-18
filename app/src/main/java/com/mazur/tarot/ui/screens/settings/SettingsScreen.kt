@@ -69,6 +69,7 @@ fun SettingsScreen() {
         },
     )
     val settings by viewModel.settings.collectAsState()
+    val billingDiagnostics by viewModel.billingDiagnostics.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showConsentDialog by remember { mutableStateOf(false) }
@@ -203,6 +204,29 @@ fun SettingsScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.settings_restore_purchases))
+                }
+            }
+        }
+
+        // TYMCZASOWA DIAGNOSTYKA (do usunięcia po ustaleniu przyczyny problemów z zakupami na
+        // testach) - dokładny wynik ostatniego zapytania Billing API do Play, żeby dało się
+        // zdiagnozować "kup i nic się nie dzieje" bez podpinania telefonu do komputera.
+        billingDiagnostics?.let { diagnostics ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "Diagnostyka płatności (tymczasowe)",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = diagnostics,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
                 }
             }
         }
