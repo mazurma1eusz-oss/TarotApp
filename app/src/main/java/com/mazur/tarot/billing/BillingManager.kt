@@ -174,8 +174,12 @@ class BillingManager(
                     logDiag("onBillingSetupFinished: kod=${billingResult.responseCode}, msg=${billingResult.debugMessage}")
                     _billingConnected.value = billingResult.responseCode == BillingClient.BillingResponseCode.OK
                     if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                        queryProductDetails()
-                        restorePurchases()
+                        try {
+                            queryProductDetails()
+                            restorePurchases()
+                        } catch (t: Throwable) {
+                            logDiag("WYJĄTEK w onBillingSetupFinished po sukcesie: ${t.javaClass.simpleName}: ${t.message}\n${t.stackTraceToString().take(500)}")
+                        }
                     }
                 }
 
@@ -191,36 +195,37 @@ class BillingManager(
     }
 
     private fun queryProductDetails() {
-        val monthlyProduct = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PRODUCT_ID_PRO_MONTHLY)
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-        val weeklyProduct = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PRODUCT_ID_PRO_WEEKLY)
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-        val yearlyProduct = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PRODUCT_ID_PRO_YEARLY)
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-        val packStartProduct = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PRODUCT_ID_PACK_START)
-            .setProductType(BillingClient.ProductType.INAPP)
-            .build()
-        val packStandardProduct = QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PRODUCT_ID_PACK_STANDARD)
-            .setProductType(BillingClient.ProductType.INAPP)
-            .build()
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(listOf(monthlyProduct, weeklyProduct, yearlyProduct, packStartProduct, packStandardProduct))
-            .build()
-
+        logDiag("queryProductDetails() wywołane")
         try {
+            val monthlyProduct = QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_PRO_MONTHLY)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+            val weeklyProduct = QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_PRO_WEEKLY)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+            val yearlyProduct = QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_PRO_YEARLY)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+            val packStartProduct = QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_PACK_START)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+            val packStandardProduct = QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_PACK_STANDARD)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+            val params = QueryProductDetailsParams.newBuilder()
+                .setProductList(listOf(monthlyProduct, weeklyProduct, yearlyProduct, packStartProduct, packStandardProduct))
+                .build()
+
             logDiag("wywołuję queryProductDetailsAsync(...)")
             billingClient.queryProductDetailsAsync(params, ::onQueryProductDetailsResult)
             logDiag("queryProductDetailsAsync(...) wywołane synchronicznie bez wyjątku, czekam na callback")
         } catch (t: Throwable) {
-            logDiag("WYJĄTEK przy zapytaniu o produkty: ${t.javaClass.simpleName}: ${t.message}")
+            logDiag("WYJĄTEK przy zapytaniu o produkty: ${t.javaClass.simpleName}: ${t.message}\n${t.stackTraceToString().take(500)}")
         }
     }
 
