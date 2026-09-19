@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -76,12 +77,17 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                // Insety paska statusu/nawigacji ZANIM cokolwiek innego - to okno dialogu
+                // rysuje się na pełnym ekranie (usePlatformDefaultWidth = false) i bez tego
+                // treść (np. przycisk "Udostępnij" przy długiej rozmowie) mogłaby się przewinąć
+                // pod pasek nawigacji Androida zamiast zatrzymać się nad nim.
+                .statusBarsPadding()
+                .navigationBarsPadding()
                 .padding(16.dp)
                 .background(MysticBackground, RoundedCornerShape(20.dp))
                 .border(1.dp, MysticOutline, RoundedCornerShape(20.dp))
                 .padding(20.dp)
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding(),
+                .verticalScroll(rememberScrollState()),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

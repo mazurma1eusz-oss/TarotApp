@@ -243,6 +243,21 @@ class BillingManager(
         }
     }
 
+    /**
+     * Odświeża stan zakupów, jeśli połączenie z Google Play jest już nawiązane - wywoływane
+     * przy każdym powrocie aplikacji na pierwszy plan (patrz [com.mazur.tarot.MainActivity.onResume]),
+     * bo [restorePurchases] samo z siebie uruchamia się tylko RAZ, przy starcie połączenia
+     * ([startConnection]). Bez tego wygasła subskrypcja (widoczna w Google Play jako nieaktywna)
+     * zostaje w aplikacji odblokowana bezterminowo, dopóki proces apki nie zostanie ubity i
+     * uruchomiony od nowa - [queryPurchasesAsync] po prostu nigdy nie jest odpytywane ponownie
+     * w trakcie życia procesu. Jeśli połączenie jeszcze się nie nawiązało (np. to pierwsze
+     * [onResume] tuż po starcie), nic nie robimy - [startConnection] i tak wywoła pierwszy
+     * [restorePurchases] samodzielnie, gdy tylko będzie gotowe.
+     */
+    fun refreshPurchasesIfConnected() {
+        if (billingClient.isReady) restorePurchases()
+    }
+
     private fun queryPurchasesOfType(productType: String, onChecked: (foundActivePro: Boolean) -> Unit) {
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(productType)

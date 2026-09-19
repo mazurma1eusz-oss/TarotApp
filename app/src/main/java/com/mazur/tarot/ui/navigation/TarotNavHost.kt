@@ -7,11 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -183,6 +186,13 @@ fun TarotNavHost() {
                             )
                         }
                     }
+                } else {
+                    // Ekrany bez widocznego paska nawigacji (Ustawienia, szczegóły karty) wciąż
+                    // muszą rezerwować wysokość paska systemowego na dole - inaczej Scaffold
+                    // liczy innerPadding.bottom jako 0 i treść (np. przyciski) może się schować
+                    // pod nawigacją Androida. Niewidoczny Spacer o wysokości samego insetu
+                    // załatwia to bez żadnej ręcznej łatki w każdym takim ekranie z osobna.
+                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                 }
             },
         ) { innerPadding ->

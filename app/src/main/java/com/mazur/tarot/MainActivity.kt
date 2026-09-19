@@ -22,7 +22,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        (application as TarotApplication).musicManager.onForeground()
+        val app = application as TarotApplication
+        app.musicManager.onForeground()
+        // Wygasła/anulowana subskrypcja nie cofa sama z siebie stanu Premium w apce - Google
+        // Play po prostu przestaje zwracać ten zakup w queryPurchasesAsync, ale to wywołanie
+        // dzieje się tylko raz przy starcie połączenia (patrz BillingManager.startConnection).
+        // Odświeżamy więc przy KAŻDYM powrocie na pierwszy plan, żeby zmiana widoczna w Google
+        // Play (np. "subskrypcja wygasła") trafiła też do apki bez konieczności jej zabijania.
+        app.billingManager.refreshPurchasesIfConnected()
     }
 
     override fun onPause() {
