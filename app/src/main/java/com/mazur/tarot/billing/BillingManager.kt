@@ -194,57 +194,75 @@ class BillingManager(
         }
     }
 
+    /**
+     * Billing API zabrania mieszania typów produktów (SUBS/INAPP) w jednym zapytaniu
+     * queryProductDetailsAsync ("All products should be of the same product type") - dlatego
+     * subskrypcje i pakiety pytań muszą iść jako dwa osobne zapytania, których wyniki łączymy
+     * dopiero po obu odpowiedziach.
+     */
     private fun queryProductDetails() {
         logDiag("queryProductDetails() wywołane")
         try {
-            val monthlyProduct = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID_PRO_MONTHLY)
-                .setProductType(BillingClient.ProductType.SUBS)
+            val subsParams = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(PRODUCT_ID_PRO_MONTHLY).setProductType(BillingClient.ProductType.SUBS).build(),
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(PRODUCT_ID_PRO_WEEKLY).setProductType(BillingClient.ProductType.SUBS).build(),
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(PRODUCT_ID_PRO_YEARLY).setProductType(BillingClient.ProductType.SUBS).build(),
+                    )
+                )
                 .build()
-            val weeklyProduct = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID_PRO_WEEKLY)
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-            val yearlyProduct = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID_PRO_YEARLY)
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
-            val packStartProduct = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID_PACK_START)
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build()
-            val packStandardProduct = QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PRODUCT_ID_PACK_STANDARD)
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build()
-            val params = QueryProductDetailsParams.newBuilder()
-                .setProductList(listOf(monthlyProduct, weeklyProduct, yearlyProduct, packStartProduct, packStandardProduct))
+            val inappParams = QueryProductDetailsParams.newBuilder()
+                .setProductList(
+                    listOf(
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(PRODUCT_ID_PACK_START).setProductType(BillingClient.ProductType.INAPP).build(),
+                        QueryProductDetailsParams.Product.newBuilder()
+                            .setProductId(PRODUCT_ID_PACK_STANDARD).setProductType(BillingClient.ProductType.INAPP).build(),
+                    )
+                )
                 .build()
 
-            logDiag("wywołuję queryProductDetailsAsync(...)")
-            billingClient.queryProductDetailsAsync(params, ::onQueryProductDetailsResult)
-            logDiag("queryProductDetailsAsync(...) wywołane synchronicznie bez wyjątku, czekam na callback")
+            val collected = mutableListOf<ProductDetails>()
+            var subsDone = false
+            var inappDone = false
+
+            fun finishIfBothDone() {
+                if (subsDone && inappDone) applyProductDetailsResult(collected)
+            }
+
+            logDiag("wywołuję queryProductDetailsAsync (SUBS)...")
+            billingClient.queryProductDetailsAsync(subsParams) { result, queryResult ->
+                logDiag("queryProductDetailsAsync CALLBACK (SUBS): kod=${result.responseCode}, msg=${result.debugMessage}")
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) collected.addAll(queryResult.productDetailsList)
+                subsDone = true
+                finishIfBothDone()
+            }
+            logDiag("wywołuję queryProductDetailsAsync (INAPP)...")
+            billingClient.queryProductDetailsAsync(inappParams) { result, queryResult ->
+                logDiag("queryProductDetailsAsync CALLBACK (INAPP): kod=${result.responseCode}, msg=${result.debugMessage}")
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) collected.addAll(queryResult.productDetailsList)
+                inappDone = true
+                finishIfBothDone()
+            }
         } catch (t: Throwable) {
             logDiag("WYJĄTEK przy zapytaniu o produkty: ${t.javaClass.simpleName}: ${t.message}\n${t.stackTraceToString().take(500)}")
         }
     }
 
-    private fun onQueryProductDetailsResult(result: BillingResult, queryResult: com.android.billingclient.api.QueryProductDetailsResult) {
-        logDiag("queryProductDetailsAsync CALLBACK: kod=${result.responseCode}, msg=${result.debugMessage}")
-        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-            val productDetailsList = queryResult.productDetailsList
-            _monthlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_MONTHLY }
-            _weeklyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_WEEKLY }
-            _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
-            _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
-            _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
-            val found = productDetailsList.map { it.productId }
-            val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
-                .filterNot { it in found }
-            logDiag("Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." + if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else "")
-        } else {
-            Log.w(TAG, "queryProductDetails failed: ${result.debugMessage}")
-        }
+    private fun applyProductDetailsResult(productDetailsList: List<ProductDetails>) {
+        _monthlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_MONTHLY }
+        _weeklyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_WEEKLY }
+        _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
+        _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
+        _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
+        val found = productDetailsList.map { it.productId }
+        val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
+            .filterNot { it in found }
+        logDiag("Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." + if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else "")
     }
 
     /**
