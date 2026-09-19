@@ -55,8 +55,8 @@ android {
         applicationId = "com.tarot.mistiq"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.1.1"
+        versionCode = 13
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -123,6 +123,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.activity:activity-compose:1.9.1")
+
+    // androidx.fragment nie jest użyte bezpośrednio - to zależność tranzytywna po AdMob/Play
+    // Services (play-services-base), które ciągną nieaktualne 1.1.0 (oznaczone przez Google
+    // jako outdated w Play Console). Wymuszamy nowszą wersję jawną deklaracją, żeby resolucja
+    // Gradle wybrała ją zamiast tranzytywnej.
+    implementation("androidx.fragment:fragment-ktx:1.8.4")
 
     // Compose BOM
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))

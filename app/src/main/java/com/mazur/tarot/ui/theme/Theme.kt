@@ -5,7 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -38,9 +37,14 @@ fun TarotAppTheme(content: @Composable () -> Unit) {
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as? Activity)?.window ?: return@SideEffect
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            // window.statusBarColor/navigationBarColor są wycofane w Androidzie 15 (wyświetlanie
+            // bez ramki jest tam wymuszone dla targetSdk 35+ - te settery są ignorowane, więc
+            // Play Console flaguje je jako "wycofane API"). Paski systemowe są już przezroczyste
+            // dzięki enableEdgeToEdge() w MainActivity - tu tylko sterujemy KOLOREM ich ikon, żeby
+            // były czytelne na naszym zawsze-ciemnym tle.
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = false
+            insetsController.isAppearanceLightNavigationBars = false
         }
     }
 
