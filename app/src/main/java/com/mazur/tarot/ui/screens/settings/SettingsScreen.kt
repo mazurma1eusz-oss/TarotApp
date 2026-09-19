@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +53,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.mazur.tarot.R
 import com.mazur.tarot.ui.components.MysticGradientButton
+import com.mazur.tarot.ui.components.MysticTextField
 import com.mazur.tarot.ui.tarotApp
 import com.mazur.tarot.ui.theme.MysticGold
 import com.mazur.tarot.ui.theme.MysticHeadingGold
+import com.mazur.tarot.ui.theme.MysticPurple
 import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.util.InAppReviewHelper
 
@@ -69,7 +75,6 @@ fun SettingsScreen() {
         },
     )
     val settings by viewModel.settings.collectAsState()
-    val billingDiagnostics by viewModel.billingDiagnostics.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showConsentDialog by remember { mutableStateOf(false) }
@@ -93,6 +98,23 @@ fun SettingsScreen() {
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(20.dp))
+
+        Text(text = "Twój profil", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Dobrowolne - pomaga kartom zwracać się do Ciebie właściwą formą.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileSection(
+            initialName = settings.userName,
+            initialGender = settings.userGender,
+            initialBirthDay = settings.userBirthDay,
+            initialBirthMonth = settings.userBirthMonth,
+            onSave = { name, gender, day, month -> viewModel.saveProfile(name, gender, day, month) },
+        )
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(text = stringResource(R.string.settings_account_section), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
@@ -204,29 +226,6 @@ fun SettingsScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.settings_restore_purchases))
-                }
-            }
-        }
-
-        // TYMCZASOWA DIAGNOSTYKA (do usunięcia po ustaleniu przyczyny problemów z zakupami na
-        // testach) - dokładny wynik ostatniego zapytania Billing API do Play, żeby dało się
-        // zdiagnozować "kup i nic się nie dzieje" bez podpinania telefonu do komputera.
-        billingDiagnostics?.let { diagnostics ->
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = "Diagnostyka płatności (tymczasowe)",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = diagnostics,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
                 }
             }
         }
@@ -445,5 +444,82 @@ fun SettingsScreen() {
             },
             text = { TimePicker(state = timePickerState) },
         )
+    }
+}
+
+private val PROFILE_GENDER_OPTIONS = listOf("female" to "Kobieta", "male" to "Mężczyzna", "" to "Wolę nie podawać")
+
+/** Ten sam, dobrowolny profil co na ekranie powitalnym (imię/płeć/dzień i miesiąc urodzenia),
+ * dostępny tu do edycji po pominięciu lub zmiany zdania - patrz [OnboardingScreen]. */
+@Composable
+private fun ProfileSection(
+    initialName: String,
+    initialGender: String,
+    initialBirthDay: Int,
+    initialBirthMonth: Int,
+    onSave: (name: String, gender: String, day: Int, month: Int) -> Unit,
+) {
+    var name by remember { mutableStateOf(initialName) }
+    var gender by remember { mutableStateOf(initialGender) }
+    var dayText by remember { mutableStateOf(if (initialBirthDay > 0) initialBirthDay.toString() else "") }
+    var monthText by remember { mutableStateOf(if (initialBirthMonth > 0) initialBirthMonth.toString() else "") }
+
+    // Odśwież pola, jeśli profil zmienił się z zewnątrz (np. po zapisaniu) bez resetowania
+    // tego, co użytkownik właśnie wpisuje w trakcie edycji.
+    LaunchedEffect(initialName, initialGender, initialBirthDay, initialBirthMonth) {
+        name = initialName
+        gender = initialGender
+        dayText = if (initialBirthDay > 0) initialBirthDay.toString() else ""
+        monthText = if (initialBirthMonth > 0) initialBirthMonth.toString() else ""
+    }
+
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            MysticTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = "Imię",
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PROFILE_GENDER_OPTIONS.forEach { (value, label) ->
+                    FilterChip(
+                        selected = gender == value,
+                        onClick = { gender = value },
+                        label = { Text(label) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MysticPurple.copy(alpha = 0.35f),
+                        ),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MysticTextField(
+                    value = dayText,
+                    onValueChange = { if (it.length <= 2) dayText = it.filter(Char::isDigit) },
+                    label = "Dzień urodzenia",
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+                MysticTextField(
+                    value = monthText,
+                    onValueChange = { if (it.length <= 2) monthText = it.filter(Char::isDigit) },
+                    label = "Miesiąc",
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = {
+                    val day = dayText.toIntOrNull()?.coerceIn(1, 31) ?: 0
+                    val month = monthText.toIntOrNull()?.coerceIn(1, 12) ?: 0
+                    onSave(name, gender, day, month)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Zapisz profil")
+            }
+        }
     }
 }

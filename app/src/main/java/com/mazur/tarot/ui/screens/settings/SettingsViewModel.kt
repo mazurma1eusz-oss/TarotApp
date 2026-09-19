@@ -24,9 +24,6 @@ class SettingsViewModel(
     val settings: StateFlow<AppSettings> = settingsDataStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
 
-    /** TYMCZASOWA DIAGNOSTYKA - patrz BillingManager.billingDiagnostics. */
-    val billingDiagnostics: StateFlow<String?> = billingManager.billingDiagnostics
-
     val monthlyPriceLabel: String get() = billingManager.monthlyPriceLabel
     val weeklyPriceLabel: String get() = billingManager.weeklyPriceLabel
     val yearlyPriceLabel: String get() = billingManager.yearlyPriceLabel
@@ -90,6 +87,12 @@ class SettingsViewModel(
                 NotificationScheduler.schedule(context, hour, minute)
             }
         }
+    }
+
+    /** Zapisuje/aktualizuje dobrowolny profil (ten sam co na ekranie powitalnym) - patrz
+     * [SettingsDataStore.saveOnboardingProfile]. */
+    fun saveProfile(name: String, gender: String, birthDay: Int, birthMonth: Int) {
+        viewModelScope.launch { settingsDataStore.saveOnboardingProfile(name, gender, birthDay, birthMonth) }
     }
 
     /** Usuwa lokalną historię (odczyty, notatki, ulubione). NIE dotyka statusu PRO. */

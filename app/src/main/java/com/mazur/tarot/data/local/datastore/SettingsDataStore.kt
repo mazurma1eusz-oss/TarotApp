@@ -47,6 +47,11 @@ data class AppSettings(
     val personalizedAdsConsent: Boolean = true,
     val reversedCardsEnabled: Boolean = true,
     val musicMuted: Boolean = false,
+    val hasCompletedOnboarding: Boolean = false,
+    val userName: String = "",
+    val userGender: String = "",
+    val userBirthDay: Int = 0,
+    val userBirthMonth: Int = 0,
 ) {
     /** Karty pomocnicze (Wsparcie / Na co uważać) są ważne tylko w dniu, w którym padły. */
     private val bonusCardsAreForToday: Boolean
@@ -120,6 +125,11 @@ class SettingsDataStore(private val context: Context) {
         val DAILY_PRO_QUESTIONS_EPOCH_DAY = longPreferencesKey("daily_pro_questions_epoch_day")
         val REVERSED_CARDS_ENABLED = booleanPreferencesKey("reversed_cards_enabled")
         val MUSIC_MUTED = booleanPreferencesKey("music_muted")
+        val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
+        val USER_NAME = stringPreferencesKey("user_name")
+        val USER_GENDER = stringPreferencesKey("user_gender")
+        val USER_BIRTH_DAY = intPreferencesKey("user_birth_day")
+        val USER_BIRTH_MONTH = intPreferencesKey("user_birth_month")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -145,6 +155,11 @@ class SettingsDataStore(private val context: Context) {
             personalizedAdsConsent = prefs[Keys.PERSONALIZED_ADS_CONSENT] ?: true,
             reversedCardsEnabled = prefs[Keys.REVERSED_CARDS_ENABLED] ?: true,
             musicMuted = prefs[Keys.MUSIC_MUTED] ?: false,
+            hasCompletedOnboarding = prefs[Keys.HAS_COMPLETED_ONBOARDING] ?: false,
+            userName = prefs[Keys.USER_NAME] ?: "",
+            userGender = prefs[Keys.USER_GENDER] ?: "",
+            userBirthDay = prefs[Keys.USER_BIRTH_DAY] ?: 0,
+            userBirthMonth = prefs[Keys.USER_BIRTH_MONTH] ?: 0,
         )
     }
 
@@ -302,6 +317,24 @@ class SettingsDataStore(private val context: Context) {
             val key = cardId.toString()
             prefs[Keys.FAVORITE_CARD_IDS] = if (current.contains(key)) current - key else current + key
         }
+    }
+
+    /** Zapisuje opcjonalny profil z ekranu powitalnego (wszystkie pola dobrowolne, puste/0
+     * oznacza "nie podano") i oznacza onboarding jako ukończony - niezależnie od tego, czy
+     * użytkownik cokolwiek wypełnił, czy od razu pominął ten ekran. */
+    suspend fun saveOnboardingProfile(name: String, gender: String, birthDay: Int, birthMonth: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.USER_NAME] = name
+            prefs[Keys.USER_GENDER] = gender
+            prefs[Keys.USER_BIRTH_DAY] = birthDay
+            prefs[Keys.USER_BIRTH_MONTH] = birthMonth
+            prefs[Keys.HAS_COMPLETED_ONBOARDING] = true
+        }
+    }
+
+    /** Pomija ekran powitalny bez zapisywania żadnych danych profilu. */
+    suspend fun skipOnboarding() {
+        context.dataStore.edit { it[Keys.HAS_COMPLETED_ONBOARDING] = true }
     }
 
     /** Czyści lokalne dane użytkownika (ulubione, liczniki) - wywoływane z "Usuń historię"

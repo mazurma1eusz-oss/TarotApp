@@ -53,6 +53,17 @@ class JournalRepository(
         readingDao.updateNote(readingId, note)
     }
 
+    /** Dopisuje najnowszą odpowiedź AI i pełną historię dopytań do już zapisanego odczytu -
+     * używane przy auto-zapisie w [com.mazur.tarot.ui.screens.ask.AskCardsViewModel], żeby
+     * wpis w Dzienniku rósł razem z konwersacją bez ręcznego "Zakończ i zapisz". */
+    suspend fun updateAiResponseAndFollowUps(readingId: Long, aiResponse: String?, followUps: List<ChatTurn>) {
+        readingDao.updateAiResponseAndFollowUps(
+            readingId,
+            aiResponse?.takeIf { it.isNotBlank() },
+            ReadingEntity.encodeFollowUps(followUps),
+        )
+    }
+
     /** Usuwa całą historię odczytów (Karta Dnia + Zapytaj Kart). Nie dotyczy statusu PRO. */
     suspend fun deleteAllReadings() {
         readingDao.deleteAll()

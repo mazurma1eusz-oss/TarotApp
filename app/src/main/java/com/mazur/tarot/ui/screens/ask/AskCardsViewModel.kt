@@ -48,8 +48,16 @@ data class ReadingCardState(val drawn: DrawnCard, val isFlipped: Boolean = false
 /** Jedna wylosowana karta w formie gotowej do złączenia w zapytanie o spersonalizowany odczyt. */
 data class AiCardEntry(val position: String?, val name: String, val reversed: Boolean)
 
-/** Pytanie użytkownika, wylosowane karty i opcjonalna intencja - materiał wejściowy do promptu dla modelu. */
-data class AiReadingRequest(val question: String?, val cards: List<AiCardEntry>, val intent: String? = null)
+/** Pytanie użytkownika, wylosowane karty i opcjonalna intencja - materiał wejściowy do promptu dla
+ * modelu. [userName]/[userGender] pochodzą z dobrowolnego profilu z ekranu powitalnego (patrz
+ * [com.mazur.tarot.data.local.datastore.AppSettings]) - puste, gdy użytkownik ich nie podał. */
+data class AiReadingRequest(
+    val question: String?,
+    val cards: List<AiCardEntry>,
+    val intent: String? = null,
+    val userName: String = "",
+    val userGender: String = "",
+)
 
 sealed interface AiReadingState {
     data object Loading : AiReadingState
@@ -89,6 +97,9 @@ sealed interface AskUiState {
         val followUps: List<ChatTurn> = emptyList(),
         val followUpState: FollowUpState = FollowUpState.Locked,
         val followUpsUsed: Int = 0,
+        /** Id wpisu w Dzienniku, jeśli ten odczyt zdążył się już auto-zapisać (patrz
+         * [AskCardsViewModel.generateReading]). Null dopóki AI nie odpowie po raz pierwszy. */
+        val savedReadingId: Long? = null,
     ) : AskUiState {
         val allCardsFlipped: Boolean get() = cards.all { it.isFlipped }
         val isAiFinished: Boolean get() = aiState !is AiReadingState.Loading
@@ -198,19 +209,26 @@ class AskCardsViewModel(
         generateReading(state.question, state.cards.map { it.drawn }, state.intent)
     }
 
-    /** Zapisuje odczyt (wraz z CAŁĄ historią dopytań) w Dzienniku i wraca do ekranu wprowadzania nowego pytania. */
+    /**
+     * Wraca do ekranu wprowadzania nowego pytania. Sam zapis w Dzienniku dzieje się już
+     * automatycznie (patrz [generateReading] i [submitFollowUp]) - ten przycisk to teraz
+     * tylko "gotowe, zakończ", z zapisem awaryjnym na wypadek, gdyby z jakiegoś powodu
+     * auto-zapis się nie zdążył (np. odczyt zakończony błędem AI).
+     */
     fun finishAndSaveReading() {
         val state = _uiState.value
         if (state !is AskUiState.Reading) return
-        val aiResponseText = (state.aiState as? AiReadingState.Success)?.text
         viewModelScope.launch {
-            journalRepository.saveReading(
-                state.spreadDbType,
-                state.question,
-                state.cards.map { it.drawn },
-                aiResponseText,
-                state.followUps,
-            )
+            if (state.savedReadingId == null) {
+                val aiResponseText = (state.aiState as? AiReadingState.Success)?.text
+                journalRepository.saveReading(
+                    state.spreadDbType,
+                    state.question,
+                    state.cards.map { it.drawn },
+                    aiResponseText,
+                    state.followUps,
+                )
+            }
             if (settingsDataStore.recordCompletedReadingAndCheckReview()) {
                 _reviewRequestEvent.emit(Unit)
             }
@@ -280,11 +298,13 @@ class AskCardsViewModel(
                 question = state.question,
                 cards = state.cards.map { AiCardEntry(it.drawn.positionLabel, it.drawn.card.name, it.drawn.isReversed) },
                 intent = state.intent,
+                userName = settings.value.userName,
+                userGender = settings.value.userGender,
             )
             val result = aiReadingRepository.generateFollowUp(request, previousAnswer, trimmed)
             val current = _uiState.value
             if (current is AskUiState.Reading) {
-                _uiState.value = result.fold(
+                val updated = result.fold(
                     onSuccess = { answer ->
                         current.copy(
                             followUps = current.followUps + ChatTurn(trimmed, answer),
@@ -302,35 +322,59 @@ class AskCardsViewModel(
                         current.copy(followUpState = FollowUpState.Error(trimmed, message))
                     },
                 )
+                _uiState.value = updated
+                if (result.isSuccess && updated.savedReadingId != null) {
+                    journalRepository.updateAiResponseAndFollowUps(
+                        updated.savedReadingId,
+                        (updated.aiState as? AiReadingState.Success)?.text,
+                        updated.followUps,
+                    )
+                }
             }
         }
     }
 
-    /** Wysyła pytanie i wylosowane karty do modelu Gemini i publikuje wynik w stanie odczytu. */
+    /** Wysyła pytanie i wylosowane karty do modelu Gemini, publikuje wynik w stanie odczytu
+     * i - przy sukcesie - od razu zapisuje odczyt w Dzienniku (bez czekania na "Zakończ"). */
     private fun generateReading(question: String?, drawnCards: List<DrawnCard>, intent: String?) {
         viewModelScope.launch {
             val request = AiReadingRequest(
                 question = question,
                 cards = drawnCards.map { AiCardEntry(it.positionLabel, it.card.name, it.isReversed) },
                 intent = intent,
+                userName = settings.value.userName,
+                userGender = settings.value.userGender,
             )
             val result = aiReadingRepository.generateReading(request)
 
             val current = _uiState.value
             if (current is AskUiState.Reading) {
-                _uiState.value = current.copy(
-                    aiState = result.fold(
-                        onSuccess = { AiReadingState.Success(it) },
-                        onFailure = { throwable ->
-                            val message = if (throwable is IOException) {
-                                "Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie."
-                            } else {
-                                "Przekaz z kosmosu został zakłócony. Spróbuj ponownie za chwilę."
-                            }
-                            AiReadingState.Error(message)
-                        },
-                    ),
+                val aiState = result.fold(
+                    onSuccess = { AiReadingState.Success(it) },
+                    onFailure = { throwable ->
+                        val message = if (throwable is IOException) {
+                            "Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie."
+                        } else {
+                            "Przekaz z kosmosu został zakłócony. Spróbuj ponownie za chwilę."
+                        }
+                        AiReadingState.Error(message)
+                    },
                 )
+                _uiState.value = current.copy(aiState = aiState)
+
+                if (aiState is AiReadingState.Success) {
+                    val savedId = journalRepository.saveReading(
+                        current.spreadDbType,
+                        current.question,
+                        current.cards.map { it.drawn },
+                        aiState.text,
+                        current.followUps,
+                    )
+                    val afterSave = _uiState.value
+                    if (afterSave is AskUiState.Reading) {
+                        _uiState.value = afterSave.copy(savedReadingId = savedId)
+                    }
+                }
             }
         }
     }

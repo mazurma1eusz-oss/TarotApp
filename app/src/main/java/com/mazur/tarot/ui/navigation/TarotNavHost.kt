@@ -55,6 +55,7 @@ import com.mazur.tarot.ui.screens.carddetail.CardDetailScreen
 import com.mazur.tarot.ui.screens.cardofday.CardOfDayScreen
 import com.mazur.tarot.ui.screens.encyclopedia.EncyclopediaScreen
 import com.mazur.tarot.ui.screens.journal.JournalScreen
+import com.mazur.tarot.ui.screens.onboarding.OnboardingScreen
 import com.mazur.tarot.ui.screens.settings.SettingsScreen
 import com.mazur.tarot.ui.screens.splash.SplashScreen
 import com.mazur.tarot.ui.tarotApp
@@ -72,7 +73,7 @@ fun TarotNavHost() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = bottomNavItems.any { it.screen.route == currentRoute }
-    val showTopBar = currentRoute != Screen.Splash.route
+    val showTopBar = currentRoute != Screen.Splash.route && currentRoute != Screen.Onboarding.route
 
     val context = LocalContext.current
     val app = tarotApp()
@@ -192,8 +193,23 @@ fun TarotNavHost() {
             ) {
                 composable(Screen.Splash.route) {
                     SplashScreen(onFinished = {
+                        bootstrapScope.launch {
+                            val bootSettings = app.settingsDataStore.settingsFlow.first()
+                            val destination = if (bootSettings.hasCompletedOnboarding) {
+                                Screen.CardOfDay.route
+                            } else {
+                                Screen.Onboarding.route
+                            }
+                            navController.navigate(destination) {
+                                popUpTo(Screen.Splash.route) { inclusive = true }
+                            }
+                        }
+                    })
+                }
+                composable(Screen.Onboarding.route) {
+                    OnboardingScreen(onFinished = {
                         navController.navigate(Screen.CardOfDay.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
                         }
                     })
                 }

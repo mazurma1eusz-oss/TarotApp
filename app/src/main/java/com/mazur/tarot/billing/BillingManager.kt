@@ -18,7 +18,6 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.mazur.tarot.data.local.datastore.SettingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -113,23 +112,6 @@ class BillingManager(
     private val _billingConnected = MutableStateFlow(false)
     val billingConnected: StateFlow<Boolean> = _billingConnected.asStateFlow()
 
-    /** TYMCZASOWA DIAGNOSTYKA (do usunięcia po ustaleniu przyczyny problemów z zakupami na
-     * testach) - rosnący log zdarzeń (nie pojedynczy komunikat) ze znacznikami czasu, pokazywany
-     * w Ustawieniach. Pozwala zobaczyć DOKŁADNIE, który krok połączenia z Play się wykonał,
-     * a na którym utknęło - zamiast zgadywać na podstawie jednego, nadpisywanego komunikatu. */
-    private val _billingDiagnostics = MutableStateFlow<String?>(null)
-    val billingDiagnostics: StateFlow<String?> = _billingDiagnostics.asStateFlow()
-
-    private val diagStartMillis = System.currentTimeMillis()
-
-    private fun logDiag(message: String) {
-        val elapsedSec = (System.currentTimeMillis() - diagStartMillis) / 1000.0
-        val line = "[+%.1fs] %s".format(elapsedSec, message)
-        Log.d(TAG, line)
-        val current = _billingDiagnostics.value
-        _billingDiagnostics.value = if (current.isNullOrEmpty()) line else "$current\n$line"
-    }
-
     private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             purchases.forEach { handlePurchase(it) }
@@ -145,53 +127,23 @@ class BillingManager(
         )
         .build()
 
-    init {
-        logDiag("BillingManager skonstruowany (billingClient utworzony OK)")
-    }
-
     fun startConnection() {
-        logDiag("startConnection() wywołane")
-        if (billingClient.isReady) {
-            logDiag("billingClient.isReady=true, pomijam (już połączony)")
-            return
-        }
-        // TYMCZASOWA DIAGNOSTYKA: jeśli onBillingSetupFinished w ogóle nie zostanie wywołane
-        // (np. usługa Play nie odpowiada), ten watchdog po 12s doda wpis do logu zamiast
-        // wiecznie milczeć.
-        scope.launch {
-            logDiag("watchdog: zaplanowany (odpali się po 12s jeśli brak połączenia)")
-            delay(12_000)
-            if (!_billingConnected.value) {
-                logDiag("watchdog: PO 12s WCIĄŻ brak połączenia (onBillingSetupFinished nie wywołane)")
-            } else {
-                logDiag("watchdog: połączenie już nawiązane, nic do zgłoszenia")
+        if (billingClient.isReady) return
+        billingClient.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+                _billingConnected.value = billingResult.responseCode == BillingClient.BillingResponseCode.OK
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    queryProductDetails()
+                    restorePurchases()
+                } else {
+                    Log.w(TAG, "onBillingSetupFinished failed: ${billingResult.responseCode} ${billingResult.debugMessage}")
+                }
             }
-        }
-        try {
-            logDiag("wywołuję billingClient.startConnection(...)")
-            billingClient.startConnection(object : BillingClientStateListener {
-                override fun onBillingSetupFinished(billingResult: BillingResult) {
-                    logDiag("onBillingSetupFinished: kod=${billingResult.responseCode}, msg=${billingResult.debugMessage}")
-                    _billingConnected.value = billingResult.responseCode == BillingClient.BillingResponseCode.OK
-                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                        try {
-                            queryProductDetails()
-                            restorePurchases()
-                        } catch (t: Throwable) {
-                            logDiag("WYJĄTEK w onBillingSetupFinished po sukcesie: ${t.javaClass.simpleName}: ${t.message}\n${t.stackTraceToString().take(500)}")
-                        }
-                    }
-                }
 
-                override fun onBillingServiceDisconnected() {
-                    logDiag("onBillingServiceDisconnected: usługa Play rozłączona")
-                    _billingConnected.value = false
-                }
-            })
-            logDiag("billingClient.startConnection(...) wywołane synchronicznie bez wyjątku, czekam na callback")
-        } catch (t: Throwable) {
-            logDiag("WYJĄTEK przy starcie połączenia: ${t.javaClass.simpleName}: ${t.message}")
-        }
+            override fun onBillingServiceDisconnected() {
+                _billingConnected.value = false
+            }
+        })
     }
 
     /**
@@ -201,55 +153,54 @@ class BillingManager(
      * dopiero po obu odpowiedziach.
      */
     private fun queryProductDetails() {
-        logDiag("queryProductDetails() wywołane")
-        try {
-            val subsParams = QueryProductDetailsParams.newBuilder()
-                .setProductList(
-                    listOf(
-                        QueryProductDetailsParams.Product.newBuilder()
-                            .setProductId(PRODUCT_ID_PRO_MONTHLY).setProductType(BillingClient.ProductType.SUBS).build(),
-                        QueryProductDetailsParams.Product.newBuilder()
-                            .setProductId(PRODUCT_ID_PRO_WEEKLY).setProductType(BillingClient.ProductType.SUBS).build(),
-                        QueryProductDetailsParams.Product.newBuilder()
-                            .setProductId(PRODUCT_ID_PRO_YEARLY).setProductType(BillingClient.ProductType.SUBS).build(),
-                    )
+        val subsParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(
+                listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PRODUCT_ID_PRO_MONTHLY).setProductType(BillingClient.ProductType.SUBS).build(),
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PRODUCT_ID_PRO_WEEKLY).setProductType(BillingClient.ProductType.SUBS).build(),
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PRODUCT_ID_PRO_YEARLY).setProductType(BillingClient.ProductType.SUBS).build(),
                 )
-                .build()
-            val inappParams = QueryProductDetailsParams.newBuilder()
-                .setProductList(
-                    listOf(
-                        QueryProductDetailsParams.Product.newBuilder()
-                            .setProductId(PRODUCT_ID_PACK_START).setProductType(BillingClient.ProductType.INAPP).build(),
-                        QueryProductDetailsParams.Product.newBuilder()
-                            .setProductId(PRODUCT_ID_PACK_STANDARD).setProductType(BillingClient.ProductType.INAPP).build(),
-                    )
+            )
+            .build()
+        val inappParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(
+                listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PRODUCT_ID_PACK_START).setProductType(BillingClient.ProductType.INAPP).build(),
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PRODUCT_ID_PACK_STANDARD).setProductType(BillingClient.ProductType.INAPP).build(),
                 )
-                .build()
+            )
+            .build()
 
-            val collected = mutableListOf<ProductDetails>()
-            var subsDone = false
-            var inappDone = false
+        val collected = mutableListOf<ProductDetails>()
+        var subsDone = false
+        var inappDone = false
 
-            fun finishIfBothDone() {
-                if (subsDone && inappDone) applyProductDetailsResult(collected)
-            }
+        fun finishIfBothDone() {
+            if (subsDone && inappDone) applyProductDetailsResult(collected)
+        }
 
-            logDiag("wywołuję queryProductDetailsAsync (SUBS)...")
-            billingClient.queryProductDetailsAsync(subsParams) { result, queryResult ->
-                logDiag("queryProductDetailsAsync CALLBACK (SUBS): kod=${result.responseCode}, msg=${result.debugMessage}")
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) collected.addAll(queryResult.productDetailsList)
-                subsDone = true
-                finishIfBothDone()
+        billingClient.queryProductDetailsAsync(subsParams) { result, queryResult ->
+            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                collected.addAll(queryResult.productDetailsList)
+            } else {
+                Log.w(TAG, "queryProductDetailsAsync (SUBS) failed: ${result.debugMessage}")
             }
-            logDiag("wywołuję queryProductDetailsAsync (INAPP)...")
-            billingClient.queryProductDetailsAsync(inappParams) { result, queryResult ->
-                logDiag("queryProductDetailsAsync CALLBACK (INAPP): kod=${result.responseCode}, msg=${result.debugMessage}")
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) collected.addAll(queryResult.productDetailsList)
-                inappDone = true
-                finishIfBothDone()
+            subsDone = true
+            finishIfBothDone()
+        }
+        billingClient.queryProductDetailsAsync(inappParams) { result, queryResult ->
+            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                collected.addAll(queryResult.productDetailsList)
+            } else {
+                Log.w(TAG, "queryProductDetailsAsync (INAPP) failed: ${result.debugMessage}")
             }
-        } catch (t: Throwable) {
-            logDiag("WYJĄTEK przy zapytaniu o produkty: ${t.javaClass.simpleName}: ${t.message}\n${t.stackTraceToString().take(500)}")
+            inappDone = true
+            finishIfBothDone()
         }
     }
 
@@ -259,10 +210,6 @@ class BillingManager(
         _yearlyProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PRO_YEARLY }
         _packStartProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_START }
         _packStandardProductDetails.value = productDetailsList.firstOrNull { it.productId == PRODUCT_ID_PACK_STANDARD }
-        val found = productDetailsList.map { it.productId }
-        val missing = listOf(PRODUCT_ID_PRO_MONTHLY, PRODUCT_ID_PRO_WEEKLY, PRODUCT_ID_PRO_YEARLY, PRODUCT_ID_PACK_START, PRODUCT_ID_PACK_STANDARD)
-            .filterNot { it in found }
-        logDiag("Znaleziono ${found.size}/5 produktów: ${found.joinToString()}." + if (missing.isNotEmpty()) " Brak: ${missing.joinToString()}." else "")
     }
 
     /**
@@ -336,23 +283,20 @@ class BillingManager(
 
     /** Uruchamia zakup jednorazowego, konsumowalnego Pakietu Start (5 pytań). */
     fun launchPackStartPurchaseFlow(activity: Activity) {
-        _packStartProductDetails.value?.let { launchInappFlow(activity, it) } ?: run {
-            logDiag("Kliknięto Pakiet Start, ale ProductDetails jeszcze nie załadowane.")
-        }
+        _packStartProductDetails.value?.let { launchInappFlow(activity, it) }
+            ?: Log.w(TAG, "Pack Start details not loaded yet")
     }
 
     /** Uruchamia zakup jednorazowego, konsumowalnego Pakietu Standard (30 pytań). */
     fun launchPackStandardPurchaseFlow(activity: Activity) {
-        _packStandardProductDetails.value?.let { launchInappFlow(activity, it) } ?: run {
-            logDiag("Kliknięto Pakiet Standard, ale ProductDetails jeszcze nie załadowane.")
-        }
+        _packStandardProductDetails.value?.let { launchInappFlow(activity, it) }
+            ?: Log.w(TAG, "Pack Standard details not loaded yet")
     }
 
     private fun launchSubsFlow(activity: Activity, details: ProductDetails?) {
         val offerToken = details?.subscriptionOfferDetails?.firstOrNull()?.offerToken
         if (details == null || offerToken == null) {
-            logDiag("Kliknięto zakup subskrypcji, ale ProductDetails/offerToken jeszcze nie załadowane " +
-                "(details=${details != null}, offerToken=${offerToken != null}).")
+            Log.w(TAG, "Subscription details not loaded yet")
             return
         }
         val productDetailsParamsList = listOf(
@@ -364,8 +308,7 @@ class BillingManager(
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        val launchResult = billingClient.launchBillingFlow(activity, flowParams)
-        logDiag("launchBillingFlow (subskrypcja): kod=${launchResult.responseCode}, msg=${launchResult.debugMessage}")
+        billingClient.launchBillingFlow(activity, flowParams)
     }
 
     private fun launchInappFlow(activity: Activity, details: ProductDetails) {
@@ -377,8 +320,7 @@ class BillingManager(
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        val launchResult = billingClient.launchBillingFlow(activity, flowParams)
-        logDiag("launchBillingFlow (produkt): kod=${launchResult.responseCode}, msg=${launchResult.debugMessage}")
+        billingClient.launchBillingFlow(activity, flowParams)
     }
 
     private fun handlePurchase(purchase: Purchase) {

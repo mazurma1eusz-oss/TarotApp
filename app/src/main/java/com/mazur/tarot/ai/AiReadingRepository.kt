@@ -77,6 +77,21 @@ class AiReadingRepository {
     }
 }
 
+/** Dopisek o imieniu/formie gramatycznej z dobrowolnego profilu użytkownika (ekran powitalny),
+ * albo pusty string, gdy nic nie podano - patrz [AiReadingRequest.userName]/[userGender]. */
+private fun AiReadingRequest.profileLine(): String {
+    val genderInstruction = when (userGender) {
+        "female" -> " Użytkowniczka jest kobietą - używaj żeńskich form gramatycznych (np. 'zauważyłaś', 'możesz poczuć')."
+        "male" -> " Użytkownik jest mężczyzną - używaj męskich form gramatycznych (np. 'zauważyłeś', 'możesz poczuć')."
+        else -> ""
+    }
+    val nameInstruction = userName.takeIf { it.isNotBlank() }
+        ?.let { " Możesz zwrócić się do użytkownika po imieniu: $it (naturalnie, najwyżej raz, nie w każdym zdaniu)." }
+        ?: ""
+    val combined = (genderInstruction + nameInstruction).trim()
+    return if (combined.isEmpty()) "" else "\n$combined"
+}
+
 /**
  * Buduje treść zapytania do modelu z pytania użytkownika i wylosowanych kart. Łączy
  * zasady bezpieczeństwa/roli (ochrona przed bełkotem i próbami wyjścia z roli) z
@@ -92,13 +107,14 @@ fun AiReadingRequest.toSystemPrompt(): String {
         ?.joinToString(", ")
         ?: "bez przypisanych pozycji"
     val intentLine = intent?.let { "\nUżytkownik zaznaczył obszar swojego pytania jako: $it. Potraktuj to jako dodatkowy kontekst interpretacji, nie jako osobne pytanie." } ?: ""
+    val profileLine = profileLine()
 
     return """
         Jesteś mistycznym, empatycznym Przewodnikiem Tarota. Odpowiadasz ZAWSZE z perspektywy kart,
         w sposób nowoczesny, konkretny i wolny od ezoterycznych banałów (np. 'przyjdzie niespodziewane').
         Nie używaj formatowania Markdown (gwiazdek, krzyżyków, myślników listy) - pisz czystym tekstem.
 
-        Użytkownik podał tekst: '$questionText' oraz wylosował karty: $cardsList w pozycjach $positionsList.$intentLine
+        Użytkownik podał tekst: '$questionText' oraz wylosował karty: $cardsList w pozycjach $positionsList.$intentLine$profileLine
 
         ZASADY BEZPIECZEŃSTWA I ROLI:
         1. Jeśli tekst użytkownika to losowe litery, bełkot (np. 'asdfgh'), ciąg znaków lub tekst bez sensu:
@@ -146,7 +162,7 @@ fun AiReadingRequest.toFollowUpPrompt(previousAnswer: String, followUpQuestion: 
 
     return """
         Jesteś tym samym mistycznym Przewodnikiem Tarota, który przed chwilą przeprowadził odczyt
-        dla tych kart: $cardsList.$intentLine
+        dla tych kart: $cardsList.$intentLine${profileLine()}
 
         Twoja poprzednia odpowiedź brzmiała: "$previousAnswer"
 

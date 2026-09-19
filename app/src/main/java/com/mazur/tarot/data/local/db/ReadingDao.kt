@@ -31,6 +31,9 @@ interface ReadingDao {
     @Query("UPDATE readings SET note = :note WHERE id = :id")
     suspend fun updateNote(id: Long, note: String)
 
+    @Query("UPDATE readings SET aiResponseText = :aiResponseText, followUpsCsv = :followUpsCsv WHERE id = :id")
+    suspend fun updateAiResponseAndFollowUps(id: Long, aiResponseText: String?, followUpsCsv: String?)
+
     @Query("DELETE FROM readings")
     suspend fun deleteAll()
 }

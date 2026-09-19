@@ -10,6 +10,7 @@ import com.mazur.tarot.R
 
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
+    data object Onboarding : Screen("onboarding")
     data object CardOfDay : Screen("card_of_day")
     data object Ask : Screen("ask_cards")
     data object Encyclopedia : Screen("encyclopedia")

@@ -13,7 +13,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,12 +22,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -97,7 +96,7 @@ fun ReadingScreen(
 
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
         item(key = "question_header") {
@@ -116,44 +115,47 @@ fun ReadingScreen(
             // Karty mają zawsze ten sam rozmiar co w rozkładzie 3-kartowym, niezależnie od
             // liczby wylosowanych kart - przy 1 karcie Row miałby tylko jedno dziecko z
             // weight(1f), które rozciągnęłoby się na całą szerokość ekranu. Zamiast tego
-            // liczymy stałą szerokość karty na bazie podziału na 3, a przy większej liczbie
-            // kart (5 - PRO) dopuszczamy poziome przewijanie zamiast ściskania kart.
+            // liczymy stałą szerokość karty na bazie podziału na 3, a przy 5 kartach (PRO)
+            // dzielimy na dwa rzędy (3 + 2) zamiast poziomego przewijania.
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 val cardSpacing = 10.dp
                 val cardWidth = (maxWidth - cardSpacing * 2) / 3
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                ) {
-                    state.cards.forEachIndexed { index, cardState ->
-                        Column(modifier = Modifier.width(cardWidth)) {
-                            cardState.drawn.positionLabel?.let {
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    modifier = Modifier.padding(bottom = 4.dp),
-                                )
-                            }
-                            FlipCard(
-                                isRevealed = cardState.isFlipped,
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    if (!cardState.isFlipped) {
-                                        if (soundVibrationEnabled) HapticUtil.vibrate(context)
+                val rows = state.cards.withIndex().chunked(3)
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    rows.forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            row.forEach { (index, cardState) ->
+                                Column(modifier = Modifier.width(cardWidth)) {
+                                    cardState.drawn.positionLabel?.let {
+                                        Text(
+                                            text = it,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.secondary,
+                                            modifier = Modifier.padding(bottom = 4.dp),
+                                        )
                                     }
-                                    onFlipCard(index)
-                                },
-                                back = { CardImage(imageResName = "card_back") },
-                                front = {
-                                    CardImage(
-                                        imageResName = cardState.drawn.card.imageResName,
-                                        isReversed = cardState.drawn.isReversed,
+                                    FlipCard(
+                                        isRevealed = cardState.isFlipped,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        onClick = {
+                                            if (!cardState.isFlipped) {
+                                                if (soundVibrationEnabled) HapticUtil.vibrate(context)
+                                            }
+                                            onFlipCard(index)
+                                        },
+                                        back = { CardImage(imageResName = "card_back") },
+                                        front = {
+                                            CardImage(
+                                                imageResName = cardState.drawn.card.imageResName,
+                                                isReversed = cardState.drawn.isReversed,
+                                            )
+                                        },
                                     )
-                                },
-                            )
+                                }
+                            }
                         }
                     }
                 }
