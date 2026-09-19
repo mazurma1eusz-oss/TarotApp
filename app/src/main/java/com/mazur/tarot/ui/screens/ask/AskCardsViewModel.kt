@@ -1,7 +1,10 @@
 package com.mazur.tarot.ui.screens.ask
 
+import android.content.Context
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mazur.tarot.R
 import com.mazur.tarot.ai.AiReadingRepository
 import java.io.IOException
 import com.mazur.tarot.data.local.db.SpreadType
@@ -12,6 +15,7 @@ import com.mazur.tarot.data.model.ChatTurn
 import com.mazur.tarot.data.model.DrawnCard
 import com.mazur.tarot.data.repository.CardRepository
 import com.mazur.tarot.data.repository.JournalRepository
+import com.mazur.tarot.util.resolvedAppLocale
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,12 +38,12 @@ enum class SpreadOption(val cardCount: Int, val requiresPro: Boolean, val dbType
  * zostaną wylosowane - losowanie w [AskCardsViewModel.requestReading] jest od niej całkowicie
  * niezależne.
  */
-enum class ReadingIntent(val label: String, val symbol: String) {
-    LOVE("Miłość", "♡"),
-    WORK("Praca", "♧"),
-    DECISION("Decyzja", "✦"),
-    RELATIONSHIP("Relacja", "☽"),
-    GENERAL("Ogólne", "✧"),
+enum class ReadingIntent(@StringRes val labelResId: Int, val symbol: String) {
+    LOVE(R.string.intent_love, "♡"),
+    WORK(R.string.intent_work, "♧"),
+    DECISION(R.string.intent_decision, "✦"),
+    RELATIONSHIP(R.string.intent_relationship, "☽"),
+    GENERAL(R.string.intent_general, "✧"),
 }
 
 /** Pojedyncza karta w trakcie odczytu - niesie ze sobą to, czy użytkownik ją już odsłonił. */
@@ -57,6 +61,7 @@ data class AiReadingRequest(
     val intent: String? = null,
     val userName: String = "",
     val userGender: String = "",
+    val languageCode: String = "pl",
 )
 
 sealed interface AiReadingState {
@@ -110,6 +115,7 @@ sealed interface AskUiState {
 }
 
 class AskCardsViewModel(
+    private val context: Context,
     private val cardRepository: CardRepository,
     private val journalRepository: JournalRepository,
     private val settingsDataStore: SettingsDataStore,
@@ -181,15 +187,16 @@ class AskCardsViewModel(
                 )
             }
             val trimmedQuestion = question.trim().takeIf { it.isNotBlank() }
+            val intentLabel = intent?.let { context.getString(it.labelResId) }
 
             _uiState.value = AskUiState.Reading(
                 question = trimmedQuestion,
                 spreadDbType = spread.dbType,
                 cards = drawn.map { ReadingCardState(it) },
                 aiState = AiReadingState.Loading,
-                intent = intent?.label,
+                intent = intentLabel,
             )
-            generateReading(trimmedQuestion, drawn, intent?.label)
+            generateReading(trimmedQuestion, drawn, intentLabel)
         }
     }
 
@@ -300,6 +307,7 @@ class AskCardsViewModel(
                 intent = state.intent,
                 userName = settings.value.userName,
                 userGender = settings.value.userGender,
+                languageCode = resolvedAppLocale(context).language,
             )
             val result = aiReadingRepository.generateFollowUp(request, previousAnswer, trimmed)
             val current = _uiState.value
@@ -313,13 +321,8 @@ class AskCardsViewModel(
                         )
                     },
                     onFailure = { throwable ->
-                        val message = if (throwable is IOException) {
-                            "Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie."
-                        } else {
-                            "Przekaz z kosmosu został zakłócony. Spróbuj ponownie za chwilę."
-                        }
                         // Błąd nie zużywa darmowej/kredytowej puli - użytkownik może spróbować ponownie.
-                        current.copy(followUpState = FollowUpState.Error(trimmed, message))
+                        current.copy(followUpState = FollowUpState.Error(trimmed, errorMessageFor(throwable)))
                     },
                 )
                 _uiState.value = updated
@@ -344,6 +347,7 @@ class AskCardsViewModel(
                 intent = intent,
                 userName = settings.value.userName,
                 userGender = settings.value.userGender,
+                languageCode = resolvedAppLocale(context).language,
             )
             val result = aiReadingRepository.generateReading(request)
 
@@ -351,14 +355,7 @@ class AskCardsViewModel(
             if (current is AskUiState.Reading) {
                 val aiState = result.fold(
                     onSuccess = { AiReadingState.Success(it) },
-                    onFailure = { throwable ->
-                        val message = if (throwable is IOException) {
-                            "Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie."
-                        } else {
-                            "Przekaz z kosmosu został zakłócony. Spróbuj ponownie za chwilę."
-                        }
-                        AiReadingState.Error(message)
-                    },
+                    onFailure = { throwable -> AiReadingState.Error(errorMessageFor(throwable)) },
                 )
                 _uiState.value = current.copy(aiState = aiState)
 
@@ -381,7 +378,23 @@ class AskCardsViewModel(
 
     private fun positionLabelsFor(spread: SpreadOption): List<String>? = when (spread) {
         SpreadOption.ONE -> null
-        SpreadOption.THREE -> listOf("Przeszłość", "Teraźniejszość", "Przyszłość")
-        SpreadOption.FIVE -> listOf("Sytuacja", "Wyzwanie", "Przeszłość", "Przyszłość", "Wynik")
+        SpreadOption.THREE -> listOf(
+            context.getString(R.string.position_past),
+            context.getString(R.string.position_present),
+            context.getString(R.string.position_future),
+        )
+        SpreadOption.FIVE -> listOf(
+            context.getString(R.string.position_situation),
+            context.getString(R.string.position_challenge),
+            context.getString(R.string.position_past),
+            context.getString(R.string.position_future),
+            context.getString(R.string.position_result),
+        )
+    }
+
+    private fun errorMessageFor(throwable: Throwable): String = if (throwable is IOException) {
+        context.getString(R.string.error_no_internet)
+    } else {
+        context.getString(R.string.error_ai_generic)
     }
 }

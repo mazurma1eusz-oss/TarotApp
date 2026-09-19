@@ -74,7 +74,7 @@ fun AskCardsScreen(onProRequired: () -> Unit) {
         factory = remember {
             viewModelFactory {
                 initializer {
-                    AskCardsViewModel(app.cardRepository, app.journalRepository, app.settingsDataStore, app.aiReadingRepository)
+                    AskCardsViewModel(app, app.cardRepository, app.journalRepository, app.settingsDataStore, app.aiReadingRepository)
                 }
             }
         },
@@ -168,7 +168,7 @@ fun AskCardsScreen(onProRequired: () -> Unit) {
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Text(
-                            text = "Z czym dziś przychodzisz?",
+                            text = stringResource(R.string.ask_intent_prompt),
                             style = MaterialTheme.typography.labelLarge,
                             color = MysticTextSecondary,
                         )
@@ -341,7 +341,7 @@ private fun IntentChipsRow(selected: ReadingIntent?, onSelect: (ReadingIntent?) 
                 Text(text = intent.symbol, color = if (isSelected) MysticHeadingGold else MysticTextSecondary)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = intent.label,
+                    text = stringResource(intent.labelResId),
                     style = MaterialTheme.typography.labelLarge,
                     color = if (isSelected) MysticTextPrimary else MysticTextSecondary,
                 )

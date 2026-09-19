@@ -99,10 +99,10 @@ fun SettingsScreen() {
         )
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(text = "Twój profil", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.settings_profile_title), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Dobrowolne - pomaga kartom zwracać się do Ciebie właściwą formą.",
+            text = stringResource(R.string.settings_profile_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -368,7 +368,7 @@ fun SettingsScreen() {
         Text(text = stringResource(R.string.settings_about_section), style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.app_name) + " · wersja " + com.mazur.tarot.BuildConfig.VERSION_NAME,
+            text = stringResource(R.string.settings_version_label, stringResource(R.string.app_name), com.mazur.tarot.BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -440,14 +440,12 @@ fun SettingsScreen() {
                 }) { Text("OK") }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Anuluj") }
+                TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.cancel)) }
             },
             text = { TimePicker(state = timePickerState) },
         )
     }
 }
-
-private val PROFILE_GENDER_OPTIONS = listOf("female" to "Kobieta", "male" to "Mężczyzna", "" to "Wolę nie podawać")
 
 /** Ten sam, dobrowolny profil co na ekranie powitalnym (imię/płeć/dzień i miesiąc urodzenia),
  * dostępny tu do edycji po pominięciu lub zmiany zdania - patrz [OnboardingScreen]. */
@@ -473,17 +471,22 @@ private fun ProfileSection(
         monthText = if (initialBirthMonth > 0) initialBirthMonth.toString() else ""
     }
 
+    val genderOptions = listOf(
+        "female" to stringResource(R.string.profile_gender_female),
+        "male" to stringResource(R.string.profile_gender_male),
+        "" to stringResource(R.string.profile_gender_unspecified),
+    )
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(modifier = Modifier.padding(16.dp)) {
             MysticTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = "Imię",
+                label = stringResource(R.string.profile_name_label),
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PROFILE_GENDER_OPTIONS.forEach { (value, label) ->
+                genderOptions.forEach { (value, label) ->
                     FilterChip(
                         selected = gender == value,
                         onClick = { gender = value },
@@ -499,13 +502,13 @@ private fun ProfileSection(
                 MysticTextField(
                     value = dayText,
                     onValueChange = { if (it.length <= 2) dayText = it.filter(Char::isDigit) },
-                    label = "Dzień urodzenia",
+                    label = stringResource(R.string.profile_birth_day_label),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
                 MysticTextField(
                     value = monthText,
                     onValueChange = { if (it.length <= 2) monthText = it.filter(Char::isDigit) },
-                    label = "Miesiąc",
+                    label = stringResource(R.string.profile_birth_month_label),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
             }
@@ -518,7 +521,7 @@ private fun ProfileSection(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Zapisz profil")
+                Text(stringResource(R.string.profile_save_button))
             }
         }
     }

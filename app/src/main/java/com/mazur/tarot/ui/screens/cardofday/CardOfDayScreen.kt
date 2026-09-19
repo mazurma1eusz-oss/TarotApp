@@ -93,7 +93,7 @@ fun CardOfDayScreen() {
         factory = remember {
             viewModelFactory {
                 initializer {
-                    CardOfDayViewModel(app.cardRepository, app.journalRepository, app.settingsDataStore)
+                    CardOfDayViewModel(app, app.cardRepository, app.journalRepository, app.settingsDataStore)
                 }
             }
         },
@@ -104,6 +104,7 @@ fun CardOfDayScreen() {
     val activity = context as? Activity
     var sharePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var sharePreviewText by remember { mutableStateOf("") }
+    val shareChooserTitle = stringResource(R.string.share_chooser_title_card_of_day)
 
     LaunchedEffect(Unit) {
         viewModel.reviewRequestEvent.collect { activity?.let { InAppReviewHelper.requestReview(it) } }
@@ -291,7 +292,7 @@ fun CardOfDayScreen() {
         SharePreviewDialog(
             bitmap = bitmap,
             onConfirm = {
-                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Kartę Dnia", "card_of_day_share.png", sharePreviewText)
+                CardShareUtil.shareBitmap(context, bitmap, shareChooserTitle, "card_of_day_share.png", sharePreviewText)
                 sharePreviewBitmap = null
             },
             onDismiss = { sharePreviewBitmap = null },
@@ -309,7 +310,7 @@ fun CardOfDayScreen() {
 private fun ReadyToDrawHero(onDraw: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Weź głęboki oddech i skup się na dzisiejszym dniu…",
+            text = stringResource(R.string.card_of_day_breathe_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MysticTextSecondary,
             textAlign = TextAlign.Center,
@@ -380,7 +381,7 @@ private fun ReadyToDrawHero(onDraw: () -> Unit) {
         ) {
             MysticGradientButton(onClick = onDraw, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "✦ ODKRYJ KARTĘ DNIA ✦",
+                    text = stringResource(R.string.card_of_day_reveal_cta),
                     style = MaterialTheme.typography.titleMedium,
                     color = MysticTextPrimary,
                     fontWeight = FontWeight.Bold,
@@ -425,28 +426,28 @@ private fun BonusUnlockGate(
             val minutes = (remainingMillis / 60000L).toInt()
             val seconds = ((remainingMillis / 1000L) % 60L).toInt()
             Text(
-                text = "Karty dodatkowe odblokują się za %02d:%02d".format(minutes, seconds),
+                text = stringResource(R.string.card_of_day_bonus_countdown, minutes, seconds),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MysticTextSecondary,
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedButton(onClick = onWatchAd, modifier = Modifier.fillMaxWidth()) {
-                Text("Obejrzyj reklamę (odblokuj teraz)")
+                Text(stringResource(R.string.action_watch_ad_unlock_now))
             }
         } else {
             Text(
-                text = "Odblokuj Kartę Wsparcia i Na Co Uważać",
+                text = stringResource(R.string.card_of_day_unlock_bonus_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = MysticHeadingGold,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Button(onClick = onWatchAd, modifier = Modifier.fillMaxWidth()) {
-                Text("Obejrzyj reklamę (odblokowanie natychmiastowe)")
+                Text(stringResource(R.string.action_watch_ad_unlock_instant))
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(onClick = onStartWait, modifier = Modifier.fillMaxWidth()) {
-                Text("Poczekaj 60 minut (za darmo)")
+                Text(stringResource(R.string.action_wait_60_min_free))
             }
         }
     }

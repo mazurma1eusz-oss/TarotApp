@@ -71,7 +71,7 @@ private const val MAX_BODY_LINES = 6
 object CardShareUtil {
 
     fun renderCardBitmap(context: Context, card: TarotCard, isReversed: Boolean): Bitmap {
-        val label = card.name + if (isReversed) " (odwrócona)" else ""
+        val label = card.name + if (isReversed) " " + context.getString(R.string.reversed_suffix) else ""
         val bodyText = if (isReversed) card.descriptionReversedGeneral else card.descriptionGeneral
         return renderShareBitmap(
             context = context,
@@ -86,14 +86,14 @@ object CardShareUtil {
             ShareCardEntry(
                 imageResName = it.card.imageResName,
                 isReversed = it.isReversed,
-                displayName = it.card.name + if (it.isReversed) " (odwr.)" else "",
+                displayName = it.card.name + if (it.isReversed) " " + context.getString(R.string.reversed_suffix) else "",
             )
         }
         return renderShareBitmap(
             context = context,
             entries = entries,
             question = if (includeQuestion) reading.question else null,
-            bodyText = extractShareText(reading),
+            bodyText = extractShareText(context, reading),
         )
     }
 
@@ -319,12 +319,13 @@ object CardShareUtil {
 
     /** Wyciąga czysty tekst "Przesłania" z odpowiedzi AI (bez tagów [WGLĄD]/[PRZESŁANIE] i bez
      * gwiazdek Markdown) - dla zwykłych odczytów bez AI (fallback) po prostu łączy opisy kart. */
-    private fun extractShareText(reading: ReadingDetails): String {
+    private fun extractShareText(context: Context, reading: ReadingDetails): String {
         val raw = reading.aiResponse
         val text = if (raw != null) {
-            val sections = AiResponseFormatter.parse(raw)
-            val przeslanie = sections.firstOrNull { it.heading?.contains("Przesłanie", ignoreCase = true) == true }
-            przeslanie?.body ?: sections.lastOrNull()?.body ?: raw
+            val sections = AiResponseFormatter.parse(raw, context)
+            val messageHeading = context.getString(R.string.ai_heading_message)
+            val message = sections.firstOrNull { it.heading == messageHeading }
+            message?.body ?: sections.lastOrNull()?.body ?: raw
         } else {
             reading.drawnCards.joinToString(" ") { it.activeDescription }
         }

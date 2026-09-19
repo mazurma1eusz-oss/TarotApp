@@ -254,6 +254,7 @@ private fun ChatBubblePair(turn: ChatTurn) {
 
 @Composable
 private fun ReadingResponseSection(aiState: AiReadingState, onRetry: () -> Unit) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -309,7 +310,7 @@ private fun ReadingResponseSection(aiState: AiReadingState, onRetry: () -> Unit)
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                AiResponseFormatter.parse(aiState.text).forEachIndexed { index, section ->
+                AiResponseFormatter.parse(aiState.text, context).forEachIndexed { index, section ->
                     if (index > 0) Spacer(modifier = Modifier.height(14.dp))
                     section.heading?.let {
                         Text(
@@ -358,7 +359,7 @@ private fun FollowUpGate(
     when (followUpState) {
         FollowUpState.Locked -> {
             OutlinedButton(onClick = onUnlockRequested, modifier = Modifier.fillMaxWidth()) {
-                Text("Dopytaj o ten odczyt...")
+                Text(stringResource(R.string.follow_up_locked_button))
             }
         }
 
@@ -374,7 +375,7 @@ private fun FollowUpGate(
                 MysticTextField(
                     value = followUpText,
                     onValueChange = { followUpText = it },
-                    label = "Twoje dopytanie o ten odczyt...",
+                    label = stringResource(R.string.follow_up_text_field_label),
                     accentColor = MysticGold,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -385,7 +386,7 @@ private fun FollowUpGate(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = "Wyślij dopytanie",
+                        text = stringResource(R.string.follow_up_send_button),
                         style = MaterialTheme.typography.titleMedium,
                         color = MysticTextPrimary,
                     )
@@ -408,7 +409,7 @@ private fun FollowUpGate(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Karty odpowiadają na Twoje dopytanie…",
+                    text = stringResource(R.string.follow_up_loading_text),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MysticTextSecondary,
                 )

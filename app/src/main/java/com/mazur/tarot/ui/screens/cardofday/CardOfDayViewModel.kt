@@ -1,5 +1,6 @@
 package com.mazur.tarot.ui.screens.cardofday
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mazur.tarot.data.local.db.SpreadType
@@ -8,6 +9,7 @@ import com.mazur.tarot.data.local.datastore.SettingsDataStore
 import com.mazur.tarot.data.model.DrawnCard
 import com.mazur.tarot.data.repository.CardRepository
 import com.mazur.tarot.data.repository.JournalRepository
+import com.mazur.tarot.R
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -33,6 +35,7 @@ sealed interface CardOfDayUiState {
 }
 
 class CardOfDayViewModel(
+    private val context: Context,
     private val cardRepository: CardRepository,
     private val journalRepository: JournalRepository,
     private val settingsDataStore: SettingsDataStore,
@@ -137,7 +140,7 @@ class CardOfDayViewModel(
             val drawn = DrawnCard(card, reversed)
             _uiState.value = current.copy(supportCard = drawn)
             settingsDataStore.saveSupportCard(card.id, reversed)
-            journalRepository.appendCardToTodaysCardOfDay(drawn, "Karta Wsparcia")
+            journalRepository.appendCardToTodaysCardOfDay(drawn, context.getString(R.string.card_of_day_support_label))
         }
     }
 
@@ -152,7 +155,7 @@ class CardOfDayViewModel(
             val drawn = DrawnCard(card, reversed)
             _uiState.value = current.copy(warningCard = drawn)
             settingsDataStore.saveWarningCard(card.id, reversed)
-            journalRepository.appendCardToTodaysCardOfDay(drawn, "Na Co Uważać")
+            journalRepository.appendCardToTodaysCardOfDay(drawn, context.getString(R.string.card_of_day_warning_label))
         }
     }
 }

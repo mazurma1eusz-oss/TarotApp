@@ -54,9 +54,9 @@ import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.theme.MysticTextSecondary
 import com.mazur.tarot.util.AiResponseFormatter
 import com.mazur.tarot.util.CardShareUtil
+import com.mazur.tarot.util.resolvedAppLocale
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 /**
  * Pełny podgląd zapisanego odczytu z Dziennika: data, pytanie, miniaturki wylosowanych
@@ -66,10 +66,11 @@ import java.util.Locale
 @Composable
 fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    val dateFormat = remember { SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("pl", "PL")) }
+    val dateFormat = remember { SimpleDateFormat("d MMMM yyyy, HH:mm", resolvedAppLocale(context)) }
     var includeQuestionOnShare by remember { mutableStateOf(false) }
     var sharePreviewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var sharePreviewText by remember { mutableStateOf("") }
+    val shareChooserTitle = stringResource(R.string.share_chooser_title)
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
@@ -127,7 +128,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = mainCard.card.name + if (mainCard.isReversed) " (odwr.)" else "",
+                        text = mainCard.card.name + if (mainCard.isReversed) " " + stringResource(R.string.reversed_suffix) else "",
                         style = MaterialTheme.typography.titleMedium,
                         color = MysticHeadingGold,
                         fontWeight = FontWeight.Bold,
@@ -169,7 +170,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = drawn.card.name + if (drawn.isReversed) " (odwr.)" else "",
+                                text = drawn.card.name + if (drawn.isReversed) " " + stringResource(R.string.reversed_suffix) else "",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MysticTextSecondary,
                                 textAlign = TextAlign.Center,
@@ -194,7 +195,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
                             fontWeight = FontWeight.Bold,
                         )
                         Spacer(modifier = Modifier.height(10.dp))
-                        AiResponseFormatter.parse(response).forEachIndexed { index, section ->
+                        AiResponseFormatter.parse(response, context).forEachIndexed { index, section ->
                             if (index > 0) Spacer(modifier = Modifier.height(14.dp))
                             section.heading?.let {
                                 Text(
@@ -259,7 +260,7 @@ fun ReadingDetailDialog(reading: ReadingDetails, onDismiss: () -> Unit) {
         SharePreviewDialog(
             bitmap = bitmap,
             onConfirm = {
-                CardShareUtil.shareBitmap(context, bitmap, "Udostępnij Odczyt", "reading_share.png", sharePreviewText)
+                CardShareUtil.shareBitmap(context, bitmap, shareChooserTitle, "reading_share.png", sharePreviewText)
                 sharePreviewBitmap = null
             },
             onDismiss = { sharePreviewBitmap = null },
@@ -295,10 +296,11 @@ private fun SavedChatBubblePair(turn: ChatTurn) {
     }
 }
 
+@Composable
 private fun readingSpreadLabel(spreadType: String): String = when (spreadType) {
-    "CARD_OF_DAY" -> "Karta Dnia"
-    "ONE_CARD" -> "Rozkład: 1 karta"
-    "THREE_CARD" -> "Rozkład: 3 karty"
-    "FIVE_CARD" -> "Rozkład: 5 kart"
+    "CARD_OF_DAY" -> stringResource(R.string.spread_label_card_of_day)
+    "ONE_CARD" -> stringResource(R.string.spread_label_one)
+    "THREE_CARD" -> stringResource(R.string.spread_label_three)
+    "FIVE_CARD" -> stringResource(R.string.spread_label_five)
     else -> spreadType
 }

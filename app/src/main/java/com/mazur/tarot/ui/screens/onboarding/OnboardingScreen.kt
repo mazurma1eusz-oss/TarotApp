@@ -23,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mazur.tarot.R
 import com.mazur.tarot.ui.components.MysticGradientButton
 import com.mazur.tarot.ui.components.MysticTextField
 import com.mazur.tarot.ui.theme.MysticGold
@@ -34,12 +36,6 @@ import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.tarotApp
 import com.mazur.tarot.ui.theme.MysticTextSecondary
 import kotlinx.coroutines.launch
-
-private val GENDER_OPTIONS = listOf(
-    "female" to "Kobieta",
-    "male" to "Mężczyzna",
-    "" to "Wolę nie podawać",
-)
 
 /**
  * Jednorazowy ekran powitalny (po starcie aplikacji, zanim onboarding zostanie ukończony -
@@ -56,6 +52,11 @@ fun OnboardingScreen(onFinished: () -> Unit) {
     var gender by remember { mutableStateOf("") }
     var birthDayText by remember { mutableStateOf("") }
     var birthMonthText by remember { mutableStateOf("") }
+    val genderOptions = listOf(
+        "female" to stringResource(R.string.profile_gender_female),
+        "male" to stringResource(R.string.profile_gender_male),
+        "" to stringResource(R.string.profile_gender_unspecified),
+    )
 
     fun saveAndContinue() {
         val day = birthDayText.toIntOrNull()?.coerceIn(1, 31) ?: 0
@@ -82,15 +83,14 @@ fun OnboardingScreen(onFinished: () -> Unit) {
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Zanim zaczniemy",
+            text = stringResource(R.string.onboarding_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MysticHeadingGold,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Te dane są całkowicie dobrowolne - pomagają kartom zwracać się do Ciebie " +
-                "właściwym imieniem i formą. Możesz je pominąć i wrócić do tego później w Ustawieniach.",
+            text = stringResource(R.string.onboarding_intro),
             style = MaterialTheme.typography.bodyMedium,
             color = MysticTextSecondary,
         )
@@ -99,19 +99,19 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         MysticTextField(
             value = name,
             onValueChange = { name = it },
-            label = "Twoje imię (opcjonalnie)",
+            label = stringResource(R.string.onboarding_name_label),
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Płeć (opcjonalnie)",
+            text = stringResource(R.string.onboarding_gender_label),
             style = MaterialTheme.typography.titleSmall,
             color = MysticTextPrimary,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            GENDER_OPTIONS.forEach { (value, label) ->
+            genderOptions.forEach { (value, label) ->
                 FilterChip(
                     selected = gender == value,
                     onClick = { gender = value },
@@ -127,7 +127,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Data urodzenia - dzień i miesiąc (opcjonalnie)",
+            text = stringResource(R.string.onboarding_birth_label),
             style = MaterialTheme.typography.titleSmall,
             color = MysticTextPrimary,
         )
@@ -136,13 +136,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             MysticTextField(
                 value = birthDayText,
                 onValueChange = { if (it.length <= 2) birthDayText = it.filter(Char::isDigit) },
-                label = "Dzień",
+                label = stringResource(R.string.onboarding_day_label),
                 modifier = Modifier.fillMaxWidth().weight(1f),
             )
             MysticTextField(
                 value = birthMonthText,
                 onValueChange = { if (it.length <= 2) birthMonthText = it.filter(Char::isDigit) },
-                label = "Miesiąc",
+                label = stringResource(R.string.onboarding_month_label),
                 modifier = Modifier.fillMaxWidth().weight(1f),
             )
         }
@@ -150,14 +150,14 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         Spacer(modifier = Modifier.height(36.dp))
         MysticGradientButton(onClick = ::saveAndContinue, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Zapisz i kontynuuj",
+                text = stringResource(R.string.onboarding_save_button),
                 style = MaterialTheme.typography.titleMedium,
                 color = MysticTextPrimary,
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
         TextButton(onClick = ::skip, modifier = Modifier.fillMaxWidth()) {
-            Text("Pomiń", color = MysticGold)
+            Text(stringResource(R.string.onboarding_skip_button), color = MysticGold)
         }
         Spacer(modifier = Modifier.height(24.dp))
     }

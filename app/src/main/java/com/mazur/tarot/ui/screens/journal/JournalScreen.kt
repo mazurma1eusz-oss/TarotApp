@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,9 +46,9 @@ import com.mazur.tarot.ui.theme.MysticHeadingGold
 import com.mazur.tarot.ui.theme.MysticPanel
 import com.mazur.tarot.ui.theme.MysticTextPrimary
 import com.mazur.tarot.ui.theme.MysticTextSecondary
+import com.mazur.tarot.util.resolvedAppLocale
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 @Composable
 fun JournalScreen(onUnlockPro: () -> Unit) {
@@ -121,7 +122,9 @@ fun JournalScreen(onUnlockPro: () -> Unit) {
 private fun JournalEntryCard(reading: ReadingDetails, onNoteSave: (String) -> Unit, onClick: () -> Unit) {
     var isEditing by remember { mutableStateOf(false) }
     var noteDraft by rememberSaveable(reading.id) { mutableStateOf(reading.note) }
-    val dateFormat = remember { SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("pl", "PL")) }
+    val context = LocalContext.current
+    val dateFormat = remember { SimpleDateFormat("d MMMM yyyy, HH:mm", resolvedAppLocale(context)) }
+    val reversedSuffix = stringResource(R.string.reversed_suffix)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -158,7 +161,7 @@ private fun JournalEntryCard(reading: ReadingDetails, onNoteSave: (String) -> Un
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = reading.drawnCards.joinToString(", ") { it.card.name + if (it.isReversed) " (odwr.)" else "" },
+                text = reading.drawnCards.joinToString(", ") { it.card.name + if (it.isReversed) " $reversedSuffix" else "" },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -187,7 +190,7 @@ private fun JournalEntryCard(reading: ReadingDetails, onNoteSave: (String) -> Un
                         Spacer(modifier = Modifier.height(4.dp))
                     }
                     TextButton(onClick = { isEditing = true }, modifier = Modifier.align(Alignment.End)) {
-                        Text(if (reading.note.isBlank()) stringResource(R.string.journal_note_hint) else "Edytuj notatkę")
+                        Text(if (reading.note.isBlank()) stringResource(R.string.journal_note_hint) else stringResource(R.string.journal_edit_note))
                     }
                 }
             }
@@ -227,30 +230,30 @@ private fun JournalStatsCard(readings: List<ReadingDetails>) {
             .padding(16.dp),
     ) {
         Text(
-            text = "Moja Historia Tarota",
+            text = stringResource(R.string.journal_stats_title),
             style = MaterialTheme.typography.titleSmall,
             color = MysticHeadingGold,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(10.dp))
-        StatsRow(label = "Liczba odczytów", value = readings.size.toString())
+        StatsRow(label = stringResource(R.string.journal_stats_reading_count), value = readings.size.toString())
         mostDrawnName?.let {
-            StatsRow(label = "Najczęstsza karta", value = it)
+            StatsRow(label = stringResource(R.string.journal_stats_most_drawn_card), value = it)
         }
-        StatsRow(label = "Proste / Odwrócone", value = "$uprightCount / $reversedCount")
-        StatsRow(label = "Wielkie / Małe Arkana", value = "$majorCount / $minorCount")
+        StatsRow(label = stringResource(R.string.journal_stats_upright_reversed), value = "$uprightCount / $reversedCount")
+        StatsRow(label = stringResource(R.string.journal_stats_major_minor), value = "$majorCount / $minorCount")
         mostDrawnElement?.let {
-            StatsRow(label = "Najczęstszy żywioł", value = it)
+            StatsRow(label = stringResource(R.string.journal_stats_most_drawn_element), value = it)
         }
     }
 }
 
-/** Wyprowadza polską nazwę żywiołu z prefiksu nazwy grafiki karty (np. "cups_02" -> "Wody"). */
+@Composable
 private fun elementLabelFor(imageResName: String): String? = when (imageResName.substringBefore("_")) {
-    "wands" -> "Ognia (Buławy)"
-    "cups" -> "Wody (Kielichy)"
-    "swords" -> "Powietrza (Miecze)"
-    "pentacles" -> "Ziemi (Denary)"
+    "wands" -> stringResource(R.string.element_fire)
+    "cups" -> stringResource(R.string.element_water)
+    "swords" -> stringResource(R.string.element_air)
+    "pentacles" -> stringResource(R.string.element_earth)
     else -> null
 }
 
@@ -265,10 +268,11 @@ private fun StatsRow(label: String, value: String) {
     }
 }
 
+@Composable
 private fun spreadLabel(spreadType: String): String = when (spreadType) {
-    "CARD_OF_DAY" -> "Karta Dnia"
-    "ONE_CARD" -> "Rozkład: 1 karta"
-    "THREE_CARD" -> "Rozkład: 3 karty"
-    "FIVE_CARD" -> "Rozkład: 5 kart"
+    "CARD_OF_DAY" -> stringResource(R.string.spread_label_card_of_day)
+    "ONE_CARD" -> stringResource(R.string.spread_label_one)
+    "THREE_CARD" -> stringResource(R.string.spread_label_three)
+    "FIVE_CARD" -> stringResource(R.string.spread_label_five)
     else -> spreadType
 }

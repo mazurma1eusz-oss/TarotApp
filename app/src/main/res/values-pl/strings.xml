@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tarot Mistyczny</string>
+
+    <!-- Nawigacja -->
+    <string name="nav_card_of_day">Karta Dnia</string>
+    <string name="nav_ask_cards">Zapytaj Kart</string>
+    <string name="nav_encyclopedia">Encyklopedia</string>
+    <string name="nav_journal">Dziennik</string>
+    <string name="nav_settings">Ustawienia</string>
+
+    <!-- Karta dnia -->
+    <string name="card_of_day_title">Twoja Karta Dnia</string>
+    <string name="card_of_day_draw">Wylosuj kartę</string>
+    <string name="card_of_day_already_drawn">Dzisiejszą kartę już wylosowano</string>
+    <string name="card_of_day_tap_to_reveal">Dotknij, aby odwrócić kartę</string>
+    <string name="card_of_day_draw_support">Dobierz Kartę Wsparcia</string>
+    <string name="card_of_day_draw_warning">Na Co Uważać</string>
+    <string name="card_of_day_support_label">Karta Wsparcia</string>
+    <string name="card_of_day_warning_label">Na Co Uważać</string>
+    <string name="card_of_day_breathe_hint">Weź głęboki oddech i skup się na dzisiejszym dniu…</string>
+    <string name="card_of_day_reveal_cta">✦ ODKRYJ KARTĘ DNIA ✦</string>
+    <string name="card_of_day_bonus_countdown">Karty dodatkowe odblokują się za %1$02d:%2$02d</string>
+    <string name="card_of_day_unlock_bonus_title">Odblokuj Kartę Wsparcia i Na Co Uważać</string>
+    <string name="action_watch_ad_unlock_now">Obejrzyj reklamę (odblokuj teraz)</string>
+    <string name="action_watch_ad_unlock_instant">Obejrzyj reklamę (odblokowanie natychmiastowe)</string>
+    <string name="action_wait_60_min_free">Poczekaj 60 minut (za darmo)</string>
+    <string name="section_general">Przesłanie Dnia</string>
+    <string name="section_love">Miłość</string>
+    <string name="section_work">Praca</string>
+    <string name="reversed_suffix">(Odwrócona)</string>
+    <string name="share">Udostępnij</string>
+    <string name="share_show_question">Pokaż moje pytanie na grafice</string>
+    <string name="share_caption_template">Dziś gwiazdy przynoszą mi %1$s. A co Tobie karty powiedzą? Tarot Mistyczny — pobierz tutaj: %2$s</string>
+    <string name="play_store_url" translatable="false">https://play.google.com/store/apps/details?id=com.tarot.mistiq</string>
+    <string name="share_preview_title">Podgląd grafiki</string>
+    <string name="share_chooser_title">Udostępnij Odczyt</string>
+    <string name="share_chooser_title_card_of_day">Udostępnij Kartę Dnia</string>
+    <string name="spread_label_card_of_day">Karta Dnia</string>
+    <string name="spread_label_one">Rozkład: 1 karta</string>
+    <string name="spread_label_three">Rozkład: 3 karty</string>
+    <string name="spread_label_five">Rozkład: 5 kart</string>
+
+    <!-- Zapytaj kart -->
+    <string name="ask_title">Zapytaj Kart</string>
+    <string name="ask_question_hint">Wpisz swoje pytanie do kart…</string>
+    <string name="ask_spread_1">1 karta</string>
+    <string name="ask_spread_3">3 karty</string>
+    <string name="ask_spread_5">5 kart (Premium)</string>
+    <string name="ask_spread_1_helper">Szybka Odpowiedź</string>
+    <string name="ask_spread_3_helper">Przeszłość / Teraźniejszość / Przyszłość</string>
+    <string name="ask_spread_5_helper">Głęboka Analiza (Premium)</string>
+    <string name="ask_draw_button">Zadaj pytanie</string>
+    <string name="ask_intent_prompt">Z czym dziś przychodzisz?</string>
+    <string name="position_past">Przeszłość</string>
+    <string name="position_present">Teraźniejszość</string>
+    <string name="position_future">Przyszłość</string>
+    <string name="position_situation">Sytuacja</string>
+    <string name="position_challenge">Wyzwanie</string>
+    <string name="position_result">Wynik</string>
+    <string name="intent_love">Miłość</string>
+    <string name="intent_work">Praca</string>
+    <string name="intent_decision">Decyzja</string>
+    <string name="intent_relationship">Relacja</string>
+    <string name="intent_general">Ogólne</string>
+    <string name="error_no_internet">Brak połączenia z siecią. Sprawdź internet i spróbuj ponownie.</string>
+    <string name="error_ai_generic">Przekaz z kosmosu został zakłócony. Spróbuj ponownie za chwilę.</string>
+    <string name="pro_required_title">Funkcja Premium</string>
+    <string name="pro_required_message">Zapytania do kart to funkcja Premium. Twoje jedno darmowe pytanie zostało już wykorzystane — odblokuj nielimitowany dostęp, subskrybując Dostęp Premium.</string>
+    <string name="unlock_pro">Odblokuj Premium</string>
+    <string name="ask_finish_save">Zakończ Odczyt i Zapisz</string>
+    <string name="reading_flip_hint">Odsłoń wszystkie karty, dotykając każdej z nich.</string>
+    <string name="reading_loading">Karty milczą jeszcze przez chwilę… Odpowiedź się układa.</string>
+    <string name="reading_waiting_hint">Karty odsłonięte. Odpowiedź pojawi się za chwilę…</string>
+    <string name="reading_response_title">Twój Odczyt</string>
+    <string name="ai_heading_insight">Wgląd Kart</string>
+    <string name="ai_heading_message">Przesłanie na Ścieżkę</string>
+    <string name="reading_retry">Spróbuj ponownie</string>
+    <string name="cancel">Anuluj</string>
+    <string name="follow_up_locked_button">Dopytaj o ten odczyt...</string>
+    <string name="follow_up_text_field_label">Twoje dopytanie o ten odczyt...</string>
+    <string name="follow_up_send_button">Wyślij dopytanie</string>
+    <string name="follow_up_loading_text">Karty odpowiadają na Twoje dopytanie…</string>
+
+    <!-- Encyklopedia -->
+    <string name="encyclopedia_title">Encyklopedia Kart</string>
+    <string name="search_hint">Szukaj karty…</string>
+    <string name="filter_all">Wszystkie</string>
+    <string name="filter_major">Wielkie Arkana</string>
+    <string name="filter_minor">Małe Arkana</string>
+    <string name="filter_favorites">Ulubione</string>
+
+    <!-- Dziennik -->
+    <string name="journal_title">Dziennik Tarota</string>
+    <string name="journal_empty">Brak zapisanych losowań. Zadaj kartom pytanie, aby rozpocząć swój dziennik.</string>
+    <string name="journal_note_hint">Co zabierasz z tego odczytu?</string>
+    <string name="journal_locked_message">W wersji darmowej dostępne są tylko losowania z ostatnich 3 dni. Odblokuj Pełny Dostęp, aby zobaczyć pełną historię.</string>
+    <string name="journal_save_note">Zapisz notatkę</string>
+    <string name="journal_edit_note">Edytuj notatkę</string>
+    <string name="journal_stats_title">Moja Historia Tarota</string>
+    <string name="journal_stats_reading_count">Liczba odczytów</string>
+    <string name="journal_stats_most_drawn_card">Najczęstsza karta</string>
+    <string name="journal_stats_upright_reversed">Proste / Odwrócone</string>
+    <string name="journal_stats_major_minor">Wielkie / Małe Arkana</string>
+    <string name="journal_stats_most_drawn_element">Najczęstszy żywioł</string>
+    <string name="element_fire">Ognia (Buławy)</string>
+    <string name="element_water">Wody (Kielichy)</string>
+    <string name="element_air">Powietrza (Miecze)</string>
+    <string name="element_earth">Ziemi (Denary)</string>
+
+    <!-- Ustawienia -->
+    <string name="settings_title">Ustawienia</string>
+    <string name="settings_account_section">Status Konta</string>
+    <string name="settings_pro_active">Status: Wtajemniczony (Konto Premium) — dziękujemy za wsparcie!</string>
+    <string name="settings_pro_inactive">Odblokuj nielimitowany dostęp bez reklam, rozkład 5 kart i pełną historię.</string>
+    <string name="settings_account_free_credits">Konto Standardowe · Posiadane pytania: %1$d</string>
+    <string name="settings_device_local_limits">Limity darmowego dostępu i posiadane pytania są przypisane do tego urządzenia i resetują się po odinstalowaniu aplikacji.</string>
+    <string name="settings_restore_purchases">Przywróć zakupy</string>
+    <string name="settings_or_buy_pack">Pakiety Pytań (bez subskrypcji)</string>
+    <string name="settings_experience_section">Doświadczenie</string>
+    <string name="settings_reversed_cards">Losuj karty odwrócone</string>
+    <string name="settings_notifications_section">Powiadomienia</string>
+    <string name="settings_daily_reminder">Codzienne przypomnienie o Karcie Dnia</string>
+    <string name="settings_reminder_time">Godzina przypomnienia</string>
+    <string name="settings_support_section">Wsparcie i Prawo</string>
+    <string name="settings_contact_us">Napisz do nas</string>
+    <string name="settings_rate_app">Oceń aplikację</string>
+    <string name="settings_manage_consent">Zarządzaj zgodami</string>
+    <string name="settings_consent_title">Zgody i prywatność</string>
+    <string name="settings_consent_message">Możesz kontrolować, czy wyświetlane w aplikacji reklamy są dopasowywane do Twoich zainteresowań. Wyłączenie personalizacji nie wyłącza samych reklam. Szczegóły znajdziesz w Polityce Prywatności.</string>
+    <string name="settings_consent_toggle">Spersonalizowane reklamy</string>
+    <string name="settings_profile_title">Twój profil</string>
+    <string name="settings_profile_hint">Dobrowolne - pomaga kartom zwracać się do Ciebie właściwą formą.</string>
+    <string name="settings_version_label">%1$s · wersja %2$s</string>
+    <string name="profile_name_label">Imię</string>
+    <string name="profile_birth_day_label">Dzień urodzenia</string>
+    <string name="profile_birth_month_label">Miesiąc</string>
+    <string name="profile_save_button">Zapisz profil</string>
+    <string name="profile_gender_female">Kobieta</string>
+    <string name="profile_gender_male">Mężczyzna</string>
+    <string name="profile_gender_unspecified">Wolę nie podawać</string>
+    <string name="onboarding_title">Zanim zaczniemy</string>
+    <string name="onboarding_intro">Te dane są całkowicie dobrowolne - pomagają kartom zwracać się do Ciebie właściwym imieniem i formą. Możesz je pominąć i wrócić do tego później w Ustawieniach.</string>
+    <string name="onboarding_name_label">Twoje imię (opcjonalnie)</string>
+    <string name="onboarding_gender_label">Płeć (opcjonalnie)</string>
+    <string name="onboarding_birth_label">Data urodzenia - dzień i miesiąc (opcjonalnie)</string>
+    <string name="onboarding_day_label">Dzień</string>
+    <string name="onboarding_month_label">Miesiąc</string>
+    <string name="onboarding_save_button">Zapisz i kontynuuj</string>
+    <string name="onboarding_skip_button">Pomiń</string>
+
+    <string name="settings_about_section">O aplikacji</string>
+    <string name="settings_data_section">Dane</string>
+    <string name="settings_delete_history">Usuń historię</string>
+    <string name="settings_delete_history_title">Czy na pewno chcesz usunąć historię?</string>
+    <string name="settings_delete_history_message">Tej operacji nie można cofnąć. Usunięte zostaną wszystkie zapisane odczyty, notatki i ulubione karty. Twój Pełny Dostęp pozostanie aktywny.</string>
+    <string name="settings_disclaimer">Tarot Mistyczny traktuje karty jako formę refleksji i rozrywki. Odczyty nie zastępują profesjonalnej porady medycznej, prawnej ani finansowej.</string>
+
+    <!-- Szybkie ustawienia (dialog spod zębatki) -->
+    <string name="quick_settings_title">Szybkie ustawienia</string>
+    <string name="quick_settings_sound_vibration">Dźwięki i wibracje przy kartach</string>
+    <string name="quick_settings_privacy_policy">Polityka Prywatności</string>
+    <string name="privacy_policy_url" translatable="false">https://mazurma1eusz-oss.github.io/TarotApp/privacy-policy.html</string>
+    <string name="support_email" translatable="false">mazurma1eusz@gmail.com</string>
+    <string name="close">Zamknij</string>
+
+    <!-- Paywall -->
+    <string name="paywall_title">Odblokuj Pełną Mądrość Kart</string>
+    <string name="paywall_benefit_unlimited">Pełny dostęp do analiz (bez reklam)</string>
+    <string name="paywall_benefit_five_card">Rozkład 5 kart – Wielki Wgląd</string>
+    <string name="paywall_benefit_no_limits">Brak reklam i natychmiastowe dopytania</string>
+    <string name="paywall_subscribe">Subskrybuj</string>
+    <string name="paywall_subscribe_monthly">Subskrybuj Dostęp Premium</string>
+    <string name="paywall_subscribe_weekly">Subskrybuj tygodniowo</string>
+    <string name="paywall_subscribe_yearly">Subskrybuj rocznie</string>
+    <string name="paywall_recommended_badge">REKOMENDOWANE</string>
+    <string name="paywall_cancel_anytime">Anuluj w Google Play w każdej chwili</string>
+    <string name="paywall_or_buy_pack">Pakiety Pytań (bez subskrypcji)</string>
+    <string name="paywall_pack_start">Pakiet Start · 10 pytań</string>
+    <string name="paywall_pack_standard">Pakiet Standard · 50 pytań</string>
+    <string name="paywall_use_credit">Użyj kredytu pytania (masz: %1$d)</string>
+    <string name="paywall_restore">Przywróć Zakupy</string>
+    <string name="paywall_terms">Warunki i Prywatność</string>
+    <string name="paywall_watch_ad">Obejrzyj reklamę (1 darmowe pytanie)</string>
+    <string name="paywall_ad_unavailable">Brak reklamy. Weź pakiet albo Premium.</string>
+    <string name="daily_limit_title">Chwila oddechu</string>
+    <string name="daily_limit_message">Osiągnięto dzienny limit refleksji. Karty potrzebują odpoczynku do jutra.</string>
+
+    <!-- Powiadomienia -->
+    <string name="notification_channel_name">Karta Dnia</string>
+    <string name="notification_channel_desc">Codzienne przypomnienie o wylosowaniu Karty Dnia</string>
+    <string name="notification_title">Twoja Karta Dnia czeka</string>
+    <string name="notification_text">Odkryj, co dziś przygotowały dla Ciebie karty tarota.</string>
+    <string name="notification_bonus_ready_title">Karty dodatkowe gotowe</string>
+    <string name="notification_bonus_ready_text">Twoje karty wsparcia i ostrzeżenia są gotowe do odkrycia!</string>
+
+    <string name="action_mute_music">Wycisz muzykę</string>
+    <string name="action_unmute_music">Włącz muzykę</string>
+    <string name="content_desc_card_back">Rewers karty tarota</string>
+    <string name="content_desc_card_image">Grafika karty tarota</string>
+</resources>
